@@ -2,6 +2,7 @@
 
 use App\Models\order;
 use App\Models\produk;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,11 +16,13 @@ return new class extends Migration
     {
         Schema::create('order_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(order::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(produk::class)->constrained()->cascadeOnUpdate();
+            $table->string('nama_produk');
             $table->integer('jumlah_produk');
-            $table->decimal('harga', 10, 2);
-            $table->decimal('total_harga', 10, 2);
+            $table->decimal('harga', 12, 2);
+            $table->decimal('total_harga', 12, 2);
             $table->timestamps();
         });
     }

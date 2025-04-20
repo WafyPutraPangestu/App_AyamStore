@@ -15,10 +15,10 @@ return new class extends Migration
         Schema::create('table_produk', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->string('name');
+            $table->string('nama');
             $table->enum('ayam', ['hidup', 'potong']);
             $table->enum('satuan', ['kg', 'ekor']);
-            $table->decimal('harga', 10, 2);
+            $table->decimal('harga', 12, 2);
             $table->integer('stok');
             $table->text('deskripsi');
             $table->string('gambar')->nullable();
