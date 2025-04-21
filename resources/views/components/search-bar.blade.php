@@ -1,5 +1,5 @@
 <!-- resources/views/components/search-bar.blade.php -->
-<div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 border-b border-gray-200">
+<div class="bg-gradient-to-r from-blue-100 to-orange-100 p-4 border-b border-gray-200">
     <div class="relative w-full max-w-md animate-slideRight">
         <input type="text" 
                id="{{ $id ?? 'search' }}" 

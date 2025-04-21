@@ -27,9 +27,9 @@ Route::middleware('admin')->group(function () {
         Route::get('input', 'inputView')->name('input');
         Route::get('dataProduk', 'produkView')->name('dataProduk');
         Route::post('input', 'storeInput')->name('input');
-        Route::post('destroy', 'destroy')->name('destroy');
-        Route::get('edit/{id}', 'edit')->name('edit');
-        Route::post('update/{id}', 'update')->name('update');
+        Route::delete('destroy/{produk}', 'destroy')->name('destroy');
+        Route::get('edit/{produk}', 'edit')->name('edit');
+        Route::put('update/{produk}', 'update')->name('update');
     });
     Route::controller(DashboardController::class)->prefix('admin.')->name('admin.')->group(function () {
         Route::get('dashboard', 'index')->name('dashboard');

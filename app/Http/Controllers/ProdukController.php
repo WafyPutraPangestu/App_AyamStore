@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\produk;
+use App\Models\Produk;
+
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +24,7 @@ class ProdukController extends Controller
      */
     public function produkView()
     {
-        $produk = produk::latest()->simplePaginate(2);
+        $produk = Produk::latest()->simplePaginate(2);
         return view("admin.dataProduk", compact("produk"));
     }
 
@@ -72,7 +74,7 @@ class ProdukController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(produk $produk)
+    public function show(Produk $produk)
     {
         //
     }
@@ -80,16 +82,19 @@ class ProdukController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(produk $produk)
+    public function edit(Produk $produk)
     {
-        $produk = produk::all();
+
+
+        $produk = Produk::where("id", $produk->id)->first();
+
         return view("admin.edit", compact("produk"));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, produk $produk)
+    public function update(Request $request, Produk $produk)
     {
         $validatedData = $request->validate([
             "nama" => ["required", "string"],
@@ -135,9 +140,39 @@ class ProdukController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(produk $produk)
+    public function destroy(Produk $produk)
     {
-        produk::destroy($produk->id);
-        return redirect()->route("admin.dataProduk")->with("success", "Data produk berhasil dihapus");
+        // $produk = Produk::latest()->where("id", $produk->id)->first();
+
+        if ($produk->Keranjang()->exists()) {
+            return back()->with('error', 'Produk tidak bisa dihapus karena masih ada di keranjang pengguna.');
+        }
+        if ($produk->order_details()->exists()) {
+            return redirect()->back()->with('error', 'Produk tidak bisa dihapus karena sedang digunakan dalam order.');
+        }
+
+        try {
+            // Penghapusan gambar
+            if ($produk->gambar && Storage::disk('public')->exists("images/$produk->gambar")) {
+                $deleteGambar = Storage::disk('public')->delete("images/$produk->gambar");
+                if (!$deleteGambar) {
+                    Log::error('Gagal menghapus gambar: ' . $produk->gambar);
+                    throw new \Exception("Gagal menghapus gambar produk.");
+                }
+            }
+
+            // Hapus produk
+            $isDeleted = $produk->delete();
+            if (!$isDeleted) {
+                Log::error('Gagal menghapus produk: ' . $produk->id);
+                throw new \Exception("Gagal menghapus data produk.");
+            }
+
+            return redirect()->route("admin.dataProduk")->with("success", "Data produk berhasil dihapus");
+        } catch (\Exception $e) {
+            Log::error('Error during product deletion: ' . $e->getMessage());
+            return redirect()->route("admin.dataProduk")
+                ->with("error", "Gagal menghapus data produk: " . $e->getMessage());
+        }
     }
 }

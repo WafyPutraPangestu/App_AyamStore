@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class produk extends Model
+class Produk extends Model
 {
-    /** @use HasFactory<\Database\Factories\produkFactory> */
+    /** @use HasFactory<\Database\Factories\ProdukFactory> */
     use HasFactory;
     protected $table = "table_produk";
     protected $fillable = [
@@ -27,15 +27,15 @@ class produk extends Model
         'updated_at'
     ];
 
-    public function user(): BelongsToMany
+    public function User(): BelongsTo
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsTo(User::class);
     }
-    public function order_detail(): HasMany
+    public function order_details(): HasMany
     {
-        return $this->hasMany(order_detail::class, 'produk_id');
+        return $this->hasMany(OrderDetail::class, 'produk_id');
     }
-    public function keranjangs(): HasMany
+    public function Keranjang(): HasMany
     {
         return $this->hasMany(Keranjang::class, 'produk_id');
     }

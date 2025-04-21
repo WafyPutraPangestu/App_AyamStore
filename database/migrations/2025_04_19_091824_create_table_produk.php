@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('ayam', ['hidup', 'potong']);
             $table->enum('satuan', ['kg', 'ekor']);
             $table->decimal('harga', 12, 2);
-            $table->integer('stok');
+            $table->integer('stok')->unsigned()->min(0);
             $table->text('deskripsi');
             $table->string('gambar')->nullable();
             $table->timestamps();

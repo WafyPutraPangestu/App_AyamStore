@@ -1,15 +1,4 @@
-<!-- resources/views/components/page-header.blade.php -->
 @props(['title', 'buttonLink', 'buttonText'])
-
-{{-- Page Header Component --}}
-{{-- This component is used to display the page header with a title and a button. --}}
-
-{{-- The title of the page --}}
-{{-- The link for the button --}}
-{{-- The text for the button --}}
-
-{{-- Example usage: --}}
-{{-- <x-page-header title="Dashboard" buttonLink="/create" buttonText="Create New" /> --}}
 <div class="mb-6">
     <div class="flex justify-between items-center">
         <div>

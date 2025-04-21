@@ -2,33 +2,38 @@
 
 namespace Database\Factories;
 
-use App\Models\order;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Order;
+use Illuminate\Support\Facades\Storage;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\pembayaran>
- */
-class pembayaranFactory extends Factory
+class PembayaranFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        Storage::makeDirectory('public/bukti_pembayaran');
+
         return [
-            'order_id' => order::factory(),
-            'atas_nama' => $this->faker->name(),
-            'no_rek' => $this->faker->numerify('###-###-###'),
-            'metode_pembayaran' => $this->faker->randomElement(['Dana', 'Gopay', 'bank', 'cash']),
-            'bukti_pembayaran' => $this->faker->imageUrl(640, 480, 'business', true),
-            'status' => $this->faker->randomElement(['pending', 'dibayar']),
-            'total_pembayaran' => $this->faker->randomFloat(2, 10000, 500000),
-            'keterangan' => $this->faker->randomElement(['menunggu konfirmasi', 'berhasil', 'gagal']),
-            'tanggal_pembayaran' => $this->faker->dateTime(),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'order_id' => Order::factory(),
+            'atas_nama' => fake()->name(),
+            'no_rek' => fake()->numerify('#############'),
+            'metode_pembayaran' => fake()->randomElement(['Dana', 'Gopay', 'Bank', 'Cash']),
+            'bukti_pembayaran' => $this->generateBukti(),
+            'total_pembayaran' => fn($attrs) => Order::find($attrs['order_id'])->total,
+            'keterangan' => 'menunggu konfirmasi',
+            'tanggal_pembayaran' => fake()->dateTimeBetween('-1 week', 'now'),
         ];
+    }
+
+    private function generateBukti(): string
+    {
+        return fake()->boolean(70)
+            ? 'bukti_pembayaran/' . fake()->image(
+                dir: storage_path('app/public/bukti_pembayaran'),
+                width: 640,
+                height: 480,
+                category: 'business',
+                fullPath: false
+            )
+            : fake()->imageUrl(640, 480, 'business');
     }
 }

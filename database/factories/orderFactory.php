@@ -2,30 +2,45 @@
 
 namespace Database\Factories;
 
-use App\Models\order;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
- */
-class orderFactory extends Factory
+class OrderFactory extends Factory
 {
-    protected $model = order::class;
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
             'user_id' => User::factory(),
             'tanggal_order' => now(),
-            'total' => fake()->numberBetween(10000, 100000),
-            'status' => fake()->randomElement(['keranjang', 'checkout', 'diproses', 'dikirim', 'selesai', 'dibatalkan']),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'total' => 0, // Akan diupdate setelah dibuat
+            'status' => 'menunggu',
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Order $order) {
+            // Pastikan order details sudah dibuat
+            $order->load('order_details');
+
+            // Jika belum ada order details, buat dummy
+            if ($order->order_details->isEmpty()) {
+                OrderDetail::factory(rand(1, 3))->create(['order_id' => $order->id]);
+            }
+
+            $order->update([
+                'total' => $order->order_details->sum('total_harga')
+            ]);
+        });
+    }
+
+    public function selesai()
+    {
+        return $this->state([
+            'status' => 'selesai',
+            'tanggal_selesai' => now()
+        ]);
     }
 }

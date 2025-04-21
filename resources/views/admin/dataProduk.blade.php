@@ -1,18 +1,24 @@
 <x-layout>
   <div class="container mx-auto p-6 animate-fadeIn">
-      <!-- Header Section -->
+    @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
       <x-page-header 
-          title="Data Produk Unggas" 
+          title="Data Produk Ayam" 
           buttonLink="{{ route('admin.input') }}" 
           buttonText="Tambah Produk" 
       />
-
-      <!-- Table Container -->
       <x-table-container>
-          <!-- Search and Filters -->
           <x-search-bar id="search" placeholder="Cari produk..." />
-
-          <!-- Table -->
           <x-data-table>
               <x-slot:thead>
                   <th class="px-4 py-3 font-semibold text-center w-12">#</th>
@@ -27,12 +33,12 @@
               </x-slot:thead>
               
               @forelse ($produk as $item)
-              <tr class="hover:bg-amber-50 text-gray-700 border-b border-gray-100 animate-fadeIn">
+              <tr class="hover:bg-blue-500/20 text-gray-700 border-b border-gray-100 animate-fadeIn">
                   <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
                   <td class="px-4 py-3 font-medium">{{ $item->nama }}</td>
                   <td class="px-4 py-3">{{ $item->ayam }}</td>
                   <td class="px-4 py-3">{{ $item->satuan }}</td>
-                  <td class="px-4 py-3 text-right">@money($item->harga)</td>
+                  <td class="px-4 py-3 text-right">RP {{ $item->harga }}</td>
                   <td class="px-4 py-3 text-center">
                       <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-sm">
                           {{ $item->stok }} pcs

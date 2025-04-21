@@ -1,4 +1,5 @@
 <!-- resources/views/components/empty-state.blade.php -->
+@props(['title' => 'No Data Available', 'message' => 'Please add some data to get started.'])
 <div class="px-4 py-12 text-center text-gray-500">
     <div class="flex flex-col items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

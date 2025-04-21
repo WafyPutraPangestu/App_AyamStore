@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pembayaran extends Model
 {
-    /** @use HasFactory<\Database\Factories\produkFactory> */
+    /** @use HasFactory<\Database\Factories\PembayaranFactory> */
     use HasFactory;
     protected $table = "pembayaran";
     protected $fillable = [
@@ -18,12 +18,14 @@ class Pembayaran extends Model
         'no_rek',
         'metode_pembayaran',
         'bukti_pembayaran',
-        'status',
+        'total_pembayaran',
+        'keterangan',
+        'tanggal_pembayaran',
         'created_at',
         'updated_at'
     ];
-    public function order()
+    public function Order()
     {
-        return $this->belongsTo(order::class, 'order_id');
+        return $this->belongsTo(Order::class, 'order_id');
     }
 }

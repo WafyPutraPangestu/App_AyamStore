@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\produk;
+use App\Models\Produk;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,9 +16,11 @@ return new class extends Migration
         Schema::create('keranjang', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(produk::class)->constrained()->cascadeOnDelete();
-            $table->integer('jumlah_produk');
+            $table->foreignIdFor(Produk::class)->constrained()->restrictOnDelete();
+            $table->integer('jumlah_produk')->unsigned();
+            $table->index(['user_id', 'status']);
             $table->decimal('total_harga', 12, 2);
+            $table->enum('status', ['active', 'checkout', 'expired'])->default('active');
             $table->timestamps();
         });
     }

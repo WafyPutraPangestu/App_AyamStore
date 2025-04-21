@@ -5,31 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class order extends Model
+class Order extends Model
 {
-    /** @use HasFactory<\Database\Factories\produkFactory> */
     use HasFactory;
-    protected $table = "orders";
+
     protected $fillable = [
-        'id',
         'user_id',
         'tanggal_order',
         'total',
-        'status',
-        'created_at',
-        'updated_at'
+        'status'
     ];
 
+    // Relasi menggunakan camelCase
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
-    public function order_detail()
+
+    public function order_details() // Diubah ke camelCase
     {
-        return $this->hasMany(order_detail::class, 'order_id');
+        return $this->hasMany(OrderDetail::class);
     }
-    public function pembayaran()
+
+    public function pembayaran() // Diubah ke camelCase
     {
-        return $this->hasMany(Pembayaran::class, 'order_id');
+        return $this->hasMany(Pembayaran::class);
     }
 }

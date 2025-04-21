@@ -15,9 +15,17 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->date('tanggal_order');
+            $table->date('tanggal_order')->default(now());
             $table->decimal('total', 12, 2);
-            $table->enum('status', ['keranjang', 'checkout', 'diproses', 'dikirim', 'selesai', 'dibatalkan'])->default('pending');
+            $table->enum('status', [
+                'menunggu',
+                'diproses',
+                'dikirim',
+                'selesai',
+                'dibatalkan'
+            ])->default('menunggu');
+            $table->index('status');
+            $table->index('tanggal_order');
             $table->timestamps();
         });
     }
