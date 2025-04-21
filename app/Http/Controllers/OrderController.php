@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\order;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -10,9 +11,10 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Produk $produk)
     {
-        //
+        $order = Order::with(['user', 'order_details.produk'])->paginate(5);
+        return view("admin.manajemen", compact("order"));
     }
 
     /**

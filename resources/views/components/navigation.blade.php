@@ -22,6 +22,9 @@
             <x-nav-link href="{{ route('admin.dataProduk') }}" :active="request()->is('admin/dataProduk')" >
                 <span>Data Produk</span>
             </x-nav-link>
+            <x-nav-link href="{{ route('admin.manajemen') }}" :active="request()->is('admin/manajemen')" >
+                <span>Manajemen</span>
+            </x-nav-link>
             @endcan
         </div>
         <div>

@@ -12,7 +12,8 @@ class OrderDetailController extends Controller
      */
     public function index()
     {
-        //
+        $detail = OrderDetail::orderBy('created_at', 'desc')->paginate(10);
+        return view("admin.orderDetail", compact("detail"));
     }
 
     /**

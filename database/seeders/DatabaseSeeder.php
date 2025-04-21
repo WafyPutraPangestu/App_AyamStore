@@ -15,7 +15,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin dan User
         $admin = User::create([
             'role' => 'admin',
             'name' => 'Admin Ayam',
@@ -30,7 +29,6 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password')
         ]);
 
-        // Produk
         $produk1 = Produk::create([
             'user_id' => $admin->id,
             'nama' => 'Ayam Kampung Hidup',
@@ -53,39 +51,49 @@ class DatabaseSeeder extends Seeder
             'gambar' => null
         ]);
 
-        // Keranjang
         Keranjang::create([
             'user_id' => $user->id,
             'produk_id' => $produk1->id,
             'jumlah_produk' => 2,
-            'total_harga' => 90000,
+            'total_harga' => 2 * $produk1->harga,
             'status' => 'active'
         ]);
 
-        // Order
         $order = Order::create([
             'user_id' => $user->id,
             'tanggal_order' => now(),
-            'total' => 90000,
+            'total' => 0,
             'status' => 'menunggu'
         ]);
 
-        OrderDetail::create([
-            'order_id' => $order->id,
-            'produk_id' => $produk1->id,
-            'jumlah_produk' => 2,
-            'harga' => 45000,
-            'total_harga' => 90000
-        ]);
+        $grandTotal = 0;
 
-        // Pembayaran
+        $items = [
+            ['produk' => $produk1, 'jumlah' => 2],
+            ['produk' => $produk2, 'jumlah' => 3]
+        ];
+
+        foreach ($items as $item) {
+            $subtotal = $item['produk']->harga * $item['jumlah'];
+            OrderDetail::create([
+                'order_id' => $order->id,
+                'produk_id' => $item['produk']->id,
+                'jumlah_produk' => $item['jumlah'],
+                'harga' => $item['produk']->harga,
+                'total_harga' => $subtotal
+            ]);
+            $grandTotal += $subtotal;
+        }
+
+        $order->update(['total' => $grandTotal]);
+
         Pembayaran::create([
             'order_id' => $order->id,
             'atas_nama' => 'User Biasa',
             'no_rek' => '1234567890',
             'metode_pembayaran' => 'Bank',
             'bukti_pembayaran' => 'bukti.jpg',
-            'total_pembayaran' => 90000,
+            'total_pembayaran' => $grandTotal,
             'keterangan' => 'menunggu konfirmasi',
             'tanggal_pembayaran' => now()
         ]);
