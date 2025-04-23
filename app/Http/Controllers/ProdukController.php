@@ -137,9 +137,7 @@ class ProdukController extends Controller
         return redirect()->route("admin.dataProduk")->with("success", "Data produk berhasil diubah");
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(Produk $produk)
     {
         // $produk = Produk::latest()->where("id", $produk->id)->first();
@@ -152,7 +150,7 @@ class ProdukController extends Controller
         }
 
         try {
-            // Penghapusan gambar
+
             if ($produk->gambar && Storage::disk('public')->exists("images/$produk->gambar")) {
                 $deleteGambar = Storage::disk('public')->delete("images/$produk->gambar");
                 if (!$deleteGambar) {
@@ -161,7 +159,7 @@ class ProdukController extends Controller
                 }
             }
 
-            // Hapus produk
+
             $isDeleted = $produk->delete();
             if (!$isDeleted) {
                 Log::error('Gagal menghapus produk: ' . $produk->id);

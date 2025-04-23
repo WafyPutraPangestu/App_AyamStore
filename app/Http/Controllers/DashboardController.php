@@ -10,4 +10,8 @@ class DashboardController extends Controller
     {
         return view('admin.dashboard');
     }
+    public function dashboardUser()
+    {
+        return view('user.dashboard');
+    }
 }

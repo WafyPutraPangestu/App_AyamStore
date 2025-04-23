@@ -10,10 +10,12 @@ class OrderDetailController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(OrderDetail $OrderDetail)
     {
-        $detail = OrderDetail::orderBy('created_at', 'desc')->paginate(10);
-        return view("admin.orderDetail", compact("detail"));
+        $orderDetails = OrderDetail::with(['order.user', 'produk'])
+            ->get()
+            ->groupBy('order_id');
+        return view("admin.orderDetail", compact("OrderDetail", "orderDetails"));
     }
 
     /**

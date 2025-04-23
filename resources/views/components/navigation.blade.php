@@ -26,8 +26,28 @@
                 <span>Manajemen</span>
             </x-nav-link>
             @endcan
+            @can('user')
+            <x-nav-link href="{{ route('user.dashboard') }}" :active="request()->is('user/dashboard')" >
+                <span>Dashboard</span>
+            </x-nav-link>
+            <x-nav-link href="{{ route('user.katalog') }}" :active="request()->is('user/katalog')" >
+                <span>Katalog Produk</span>
+            </x-nav-link>
+               
+            @endcan
         </div>
-        <div>
+        <div class="relative">
+            <div class="">
+                @can('user')
+                    <a href="{{ route('user.keranjang') }}" class="absolute top-0 right-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" class="w-5 h-5 text-gray-700">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5h11.1a1 1 0 00.9-1.5L17 13M7 13L5.4 5M17 13l1.6-3.2M6 21a1 1 0 100-2 1 1 0 000 2zm12 0a1 1 0 100-2 1 1 0 000 2z"/>
+                        </svg>
+                    </a>
+                @endcan
+            <div>
             @auth
                 <x-form method="POST" action="{{ route('auth.logout') }}">
                     @csrf

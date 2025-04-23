@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\katalog;
+use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\ProdukController;
@@ -43,10 +45,26 @@ Route::middleware('admin')->group(function () {
     });
     // ROUTE UNTUK DETAIL ORDER
     Route::controller(OrderDetailController::class)->prefix('admin')->name('admin.')->group(function () {
-        Route::get('orderDetail', 'index')->name('orderDetail');
+        Route::get('orderDetail/{OrderDetail}', 'index')->name('orderDetail');
     });
     // ROUTE UNTUK DASHBOARD
     Route::controller(DashboardController::class)->prefix('admin.')->name('admin.')->group(function () {
         Route::get('dashboard', 'index')->name('dashboard');
+    });
+});
+
+// ROUTE UNTUK USER
+Route::middleware('user')->group(function () {
+    Route::controller(DashboardController::class)->prefix('user')->name('user.')->group(function () {
+        Route::get('dashboard', 'dashboardUser')->name('dashboard');
+    });
+    Route::controller(OrderController::class)->prefix('user')->name('user.')->group(function () {
+        Route::get('order', 'index')->name('order');
+    });
+    Route::controller(katalog::class)->prefix('user')->name('user.')->group(function () {
+        Route::get('katalog', 'katalogView')->name('katalog');
+    });
+    Route::controller(KeranjangController::class)->prefix('user')->name('user.')->group(function () {
+        Route::get('keranjang', 'userKeranjang')->name('keranjang');
     });
 });

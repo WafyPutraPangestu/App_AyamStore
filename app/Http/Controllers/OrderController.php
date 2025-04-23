@@ -11,9 +11,14 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Produk $produk)
+    public function index()
     {
-        $order = Order::with(['user', 'order_details.produk'])->paginate(5);
+        $order = Order::with(['user', 'order_details.produk'])
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'user');
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(5);
         return view("admin.manajemen", compact("order"));
     }
 
