@@ -23,8 +23,7 @@
               <x-slot:thead>
                   <th class="px-4 py-3 font-semibold text-center w-12">#</th>
                   <th class="px-4 py-3 font-semibold text-left">Produk</th>
-                  <th class="px-4 py-3 font-semibold text-left">Kategori</th>
-                  <th class="px-4 py-3 font-semibold text-left">Satuan</th>
+                  
                   <th class="px-4 py-3 font-semibold text-right">Harga</th>
                   <th class="px-4 py-3 font-semibold text-center">Stok</th>
                   <th class="px-4 py-3 font-semibold text-left">Deskripsi</th>
@@ -35,9 +34,7 @@
               @forelse ($produk as $item)
               <tr class="hover:bg-blue-500/20 text-gray-700 border-b border-gray-100 animate-fadeIn">
                   <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
-                  <td class="px-4 py-3 font-medium">{{ $item->nama }}</td>
-                  <td class="px-4 py-3">{{ $item->ayam }}</td>
-                  <td class="px-4 py-3">{{ $item->satuan }}</td>
+                  <td class="px-4 py-3 font-medium">{{ $item->nama_produk }}</td>
                   <td class="px-4 py-3 text-right">RP {{ $item->harga }}</td>
                   <td class="px-4 py-3 text-center">
                       <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-sm">

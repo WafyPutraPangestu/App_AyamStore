@@ -1,6 +1,9 @@
 import "./bootstrap";
 import "./product-search.js";
+import Alpine from "alpinejs";
 
+window.Alpine = Alpine;
+Alpine.start();
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("form.delete-form").forEach((form) => {
         form.addEventListener("submit", (e) => {

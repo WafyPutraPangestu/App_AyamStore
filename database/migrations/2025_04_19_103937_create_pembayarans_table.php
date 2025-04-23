@@ -17,14 +17,8 @@ return new class extends Migration
     {
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Order::class)->constrained()->cascadeOnDelete();
-            $table->string('atas_nama');
-            $table->string('no_rek');
-            $table->enum('metode_pembayaran', ['Dana', 'Gopay', 'Bank', 'Cash']);
-            $table->string('bukti_pembayaran')->nullable();
-            $table->decimal('total_pembayaran', 12, 2)->default(0);
-            $table->enum('keterangan', ['menunggu konfirmasi', 'dibayar', 'berhasil', 'gagal', 'kadaluarsa'])->default('menunggu konfirmasi');
-            $table->datetime('tanggal_pembayaran')->nullable();
+            $table->foreignId('order_id')->constrained()->CascadeOnDelete();
+            $table->enum('status', ['pending', 'lunas'])->default('pending');
             $table->timestamps();
         });
     }

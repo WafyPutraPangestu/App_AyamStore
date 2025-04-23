@@ -12,13 +12,9 @@ class Produk extends Model
 {
     /** @use HasFactory<\Database\Factories\ProdukFactory> */
     use HasFactory;
-    protected $table = "table_produk";
     protected $fillable = [
         'id',
-        'user_id',
-        'nama',
-        'ayam',
-        'satuan',
+        'nama_produk',
         'harga',
         'stok',
         'deskripsi',
@@ -27,16 +23,13 @@ class Produk extends Model
         'updated_at'
     ];
 
-    public function User(): BelongsTo
+
+    public function order(): HasMany
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(Order::class, 'order_id');
     }
-    public function order_details(): HasMany
+    public function keranjangItems()
     {
-        return $this->hasMany(OrderDetail::class, 'produk_id');
-    }
-    public function Keranjang(): HasMany
-    {
-        return $this->hasMany(Keranjang::class, 'produk_id');
+        return $this->hasMany(KeranjangsItem::class);
     }
 }

@@ -28,6 +28,9 @@ Route::middleware('auth')->group(function () {
 });
 // ROUTE UNTUK ADMIN
 Route::middleware('admin')->group(function () {
+    Route::controller(DashboardController::class)->prefix('admin')->name('admin.')->group(function () {
+        Route::get('dashboard', 'adminDashboard')->name('dashboard');
+    });
     Route::controller(ProdukController::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('input', 'inputView')->name('input');
         Route::get('dataProduk', 'produkView')->name('dataProduk');
@@ -39,18 +42,9 @@ Route::middleware('admin')->group(function () {
     // ROUTE UNTUK ORDER
     Route::controller(OrderController::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('manajemen', 'index')->name('manajemen');
-        // Route::get('order/{order}', 'show')->name('order.show');
-        // Route::put('order/{order}', 'update')->name('order.update');
-        // Route::delete('order/{order}', 'destroy')->name('order.destroy');
     });
     // ROUTE UNTUK DETAIL ORDER
-    Route::controller(OrderDetailController::class)->prefix('admin')->name('admin.')->group(function () {
-        Route::get('orderDetail/{OrderDetail}', 'index')->name('orderDetail');
-    });
-    // ROUTE UNTUK DASHBOARD
-    Route::controller(DashboardController::class)->prefix('admin.')->name('admin.')->group(function () {
-        Route::get('dashboard', 'index')->name('dashboard');
-    });
+
 });
 
 // ROUTE UNTUK USER
@@ -59,12 +53,18 @@ Route::middleware('user')->group(function () {
         Route::get('dashboard', 'dashboardUser')->name('dashboard');
     });
     Route::controller(OrderController::class)->prefix('user')->name('user.')->group(function () {
-        Route::get('order', 'index')->name('order');
+        Route::get('order', 'orderView')->name('order');
     });
+    Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store');
+
     Route::controller(katalog::class)->prefix('user')->name('user.')->group(function () {
         Route::get('katalog', 'katalogView')->name('katalog');
+        Route::post('katalog', 'katalogCreate')->name('katalog');
     });
     Route::controller(KeranjangController::class)->prefix('user')->name('user.')->group(function () {
         Route::get('keranjang', 'userKeranjang')->name('keranjang');
     });
+    Route::put('/keranjang/update-quantity/{id}', [KeranjangController::class, 'updateQuantity'])->name('keranjang.updateQuantity');
+    Route::delete('/keranjang/delete/{product_id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy');
+    Route::delete('/keranjang/bulk-destroy', [KeranjangController::class, 'bulkDestroy'])->name('keranjang.bulkDestroy');
 });

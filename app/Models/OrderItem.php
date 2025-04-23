@@ -2,27 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OrderDetail extends Model
+class OrderItem extends Model
 {
-    use HasFactory;
-
+    protected $table = "orders_items";
     protected $fillable = [
-        'order_id',
+        'orders_id',
+        'quantity',
         'produk_id',
-        'jumlah_produk',
-        'harga',
-        'total_harga'
+        'created_at',
+        'updated_at'
     ];
-
-    // Relasi menggunakan camelCase
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
-
     public function produk()
     {
         return $this->belongsTo(Produk::class);

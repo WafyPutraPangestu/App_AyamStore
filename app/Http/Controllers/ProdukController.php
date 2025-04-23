@@ -35,9 +35,7 @@ class ProdukController extends Controller
     {
         // dd($request->all());
         $input = $request->validate([
-            "nama" => ["required", "string"],
-            "ayam" => ["required", "string", "in:hidup,potong"],
-            "satuan" => ["required", "string", "in:kg,ekor"],
+            "nama_produk" => ["required", "string"],
             "harga" => ["required", "regex:/^[0-9.]+$/"],
             "stok" => ["required", "integer"],
             "deskripsi" => ["required", "string"],
@@ -58,9 +56,7 @@ class ProdukController extends Controller
 
         Produk::create([
             "user_id" => Auth::id(),
-            "nama" => $input["nama"],
-            "ayam" => $input["ayam"],
-            "satuan" => $input["satuan"],
+            "nama_produk" => $input["nama_produk"],
             "harga" => $input["harga"],
             "stok" => $input["stok"],
             "deskripsi" => $input["deskripsi"],

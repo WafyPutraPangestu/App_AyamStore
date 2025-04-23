@@ -14,13 +14,7 @@ class Pembayaran extends Model
     protected $fillable = [
         'id',
         'order_id',
-        'atas_nama',
-        'no_rek',
-        'metode_pembayaran',
-        'bukti_pembayaran',
-        'total_pembayaran',
-        'keterangan',
-        'tanggal_pembayaran',
+        'status',
         'created_at',
         'updated_at'
     ];

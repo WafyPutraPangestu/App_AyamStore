@@ -10,26 +10,32 @@ class Order extends Model
 {
     use HasFactory;
 
+
     protected $fillable = [
+        'produk_id',
+        'keranjang_id',
+        'status',
         'user_id',
-        'tanggal_order',
-        'total',
-        'status'
+        'total_harga',
     ];
+    protected $guarded = ['total_harga'];
 
     // Relasi menggunakan camelCase
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function order_details() // Diubah ke camelCase
-    {
-        return $this->hasMany(OrderDetail::class);
-    }
 
     public function pembayaran() // Diubah ke camelCase
     {
         return $this->hasMany(Pembayaran::class);
+    }
+    public function produk()
+    {
+        return $this->belongsToMany(Produk::class, 'produk_id');
+    }
+    public function keranjangs()
+    {
+        return $this->belongsToMany(Keranjang::class, 'keranjang_id');
+    }
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class, 'orders_id');
     }
 }

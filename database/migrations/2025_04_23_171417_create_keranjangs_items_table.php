@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Order;
+use App\Models\Keranjang;
 use App\Models\Produk;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -14,13 +14,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order_details', function (Blueprint $table) {
+        Schema::create('keranjangs_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Order::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Produk::class)->constrained()->restrictOnDelete();
-            $table->integer('jumlah_produk')->unsigned();
-            $table->decimal('harga', 12, 2);
-            $table->decimal('total_harga', 12, 2);
+            $table->foreignId('keranjang_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('produk_id')->constrained()->cascadeOnDelete();
+            $table->decimal('quantity', 12, 2);
             $table->timestamps();
         });
     }
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('order_details');
+        Schema::dropIfExists('keranjangs_items');
     }
 };

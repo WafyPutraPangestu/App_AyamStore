@@ -12,12 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('table_produk', function (Blueprint $table) {
+        Schema::create('produks', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->string('nama');
-            $table->enum('ayam', ['hidup', 'potong']);
-            $table->enum('satuan', ['kg', 'ekor']);
+            $table->string('nama_produk');
             $table->decimal('harga', 12, 2);
             $table->integer('stok')->unsigned()->min(0);
             $table->text('deskripsi');
@@ -31,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('table_produk');
+        Schema::dropIfExists('produks');
     }
 };
