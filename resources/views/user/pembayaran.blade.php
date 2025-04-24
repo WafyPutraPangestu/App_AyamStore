@@ -1,7 +1,6 @@
 <x-layout>
-  <h2>Detail Pembayaran</h2>
-  
-  {{-- @if(isset($pembayaran) && $pembayaran->snap_token)
+  <h1>test</h1>
+   @if(isset($pembayaran) && $pembayaran->snap_token)
   <div class="mt-4">
     <button id="pay-button" class="btn btn-primary">Bayar Sekarang</button>
   </div>
@@ -16,7 +15,7 @@
         onSuccess: function(result) {
           document.getElementById('result-json').innerHTML += JSON.stringify(result, null, 2);
           // Redirect atau update status pembayaran disini
-          window.location.href = "{{ route('user.order.success', $pembayaran) }}";
+          window.location.href = "{{ route('user.order-success', $pembayaran) }}";
         },
         onPending: function(result) {
           document.getElementById('result-json').innerHTML += JSON.stringify(result, null, 2);
@@ -33,5 +32,5 @@
   <div class="alert alert-danger">
     Terjadi kesalahan. Token pembayaran tidak tersedia.
   </div>
-  @endif --}}
+  @endif
 </x-layout>

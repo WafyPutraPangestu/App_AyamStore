@@ -5,6 +5,7 @@ use App\Http\Controllers\katalog;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
+use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
@@ -52,9 +53,9 @@ Route::middleware('user')->group(function () {
     Route::controller(DashboardController::class)->prefix('user')->name('user.')->group(function () {
         Route::get('dashboard', 'dashboardUser')->name('dashboard');
     });
-    Route::controller(OrderController::class)->prefix('user')->name('user.')->group(function () {
-        Route::get('order', 'orderView')->name('order');
-    });
+    // Route::controller(OrderController::class)->prefix('user')->name('user.')->group(function () {
+    //     Route::get('order', 'orderView')->name('order');
+    // });
     Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store');
 
     Route::controller(katalog::class)->prefix('user')->name('user.')->group(function () {
@@ -67,4 +68,26 @@ Route::middleware('user')->group(function () {
     Route::put('/keranjang/update-quantity/{id}', [KeranjangController::class, 'updateQuantity'])->name('keranjang.updateQuantity');
     Route::delete('/keranjang/delete/{product_id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy');
     Route::delete('/keranjang/bulk-destroy', [KeranjangController::class, 'bulkDestroy'])->name('keranjang.bulkDestroy');
+
+    Route::controller(PembayaranController::class)->prefix('user')->name('user.')->group(function () {
+        Route::get('order-form/{id}', action: 'orderView')->name('order-form');
+        Route::post('order-form', 'mockCheckout')->name('order-store');
+        Route::get('pembayaran/{pembayaran}', 'chekout')->name('pembayaran');
+        Route::get('order-form/success/{pembayaran}', 'success')->name('order-success');
+        Route::get('order/success', 'successView')->name('success');
+    });
+
+
+    // Rute untuk menampilkan form pemesanan (GET)
+    // Route::get('/user/order', [PembayaranController::class, 'showOrderForm'])->name('user.order.create');
+
+    // Rute untuk memproses form pemesanan (POST)
+    // Route::post('/user/order', [PembayaranController::class, 'mockCheckout'])->name('user.order.store');
+
+    // Rute untuk menampilkan halaman pembayaran dengan snapToken (GET)
+    // Route::get('/user/order/{pembayaran}', [PembayaranController::class, 'chekout'])->name('user.order.view');
+    // Route::get('/user/order/succes/{pembayaran}', [PembayaranController::class, 'success'])->name('user.order.success');
+
+    // Rute untuk halaman sukses setelah pembayaran
+    // Route::get('/user/success', [PembayaranController::class, 'successView'])->name('user.success');
 });

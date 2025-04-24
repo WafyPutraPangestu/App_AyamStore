@@ -6,6 +6,7 @@ use App\Models\Keranjang;
 use App\Models\KeranjangsItem;
 use App\Models\order;
 use App\Models\OrderItem;
+use App\Models\Pembayaran;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,11 +25,6 @@ class OrderController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function orderView()
-    {
-        $order = KeranjangsItem::where('',)->paginate(10);
-        return view("user.order", compact("order"));
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -68,7 +64,7 @@ class OrderController extends Controller
             return response()->json(['error' => 'Terjadi kesalahan saat memproses pesanan.', 'stack' => $e->getMessage()], 500);
         }
 
-        return response()->json(['success' => true, 'items' => $selectedItems, 'total' => $totalPrice]);
+        return response()->json(['success' => true, 'items' => $selectedItems, 'total' => $totalPrice, 'order_id' => $order->id], 200);
     }
 
 

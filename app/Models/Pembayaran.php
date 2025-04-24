@@ -14,11 +14,12 @@ class Pembayaran extends Model
     protected $fillable = [
         'id',
         'order_id',
+        'snap_token',
         'status',
         'created_at',
         'updated_at'
     ];
-    public function Order()
+    public function order()
     {
         return $this->belongsTo(Order::class, 'order_id');
     }

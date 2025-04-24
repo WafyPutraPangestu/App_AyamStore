@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then((response) => response.json())
                 .then((data) => {
                     if (data.success) {
-                        window.location.href = "/user/katalog";
+                        window.location.href = "/user/order-form";
                     }
                 })
                 .catch((error) => {

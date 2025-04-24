@@ -17,8 +17,9 @@ return new class extends Migration
     {
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained()->CascadeOnDelete();
-            $table->enum('status', ['pending', 'lunas'])->default('pending');
+            $table->foreignIdFor(Order::class)->constrained()->cascadeOnDelete();
+            $table->enum('status', ['pending', 'berhasil', 'gagal'])->default('pending');
+            $table->string('snap_token')->nullable();
             $table->timestamps();
         });
     }
