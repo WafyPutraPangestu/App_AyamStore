@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('keranjangs_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('keranjang_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('produk_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('produk_id')->constrained()->restrictOnDelete();
             $table->decimal('quantity', 12, 2);
             $table->timestamps();
         });

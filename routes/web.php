@@ -37,7 +37,7 @@ Route::middleware('admin')->group(function () {
         Route::post('input', 'storeInput')->name('input');
         Route::delete('destroy/{produk}', 'destroy')->name('destroy');
         Route::get('edit/{produk}', 'edit')->name('edit');
-        Route::put('update/{produk}', 'update')->name('update');
+        Route::patch('update/{produk}', 'update')->name('update');
     });
     // ROUTE UNTUK ORDER
     Route::controller(OrderController::class)->prefix('admin')->name('admin.')->group(function () {

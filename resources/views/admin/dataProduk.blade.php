@@ -35,7 +35,7 @@
               <tr class="hover:bg-blue-500/20 text-gray-700 border-b border-gray-100 animate-fadeIn">
                   <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
                   <td class="px-4 py-3 font-medium">{{ $item->nama_produk }}</td>
-                  <td class="px-4 py-3 text-right">RP {{ $item->harga }}</td>
+                  <td class="px-4 py-3 text-right">RP {{ number_format($item->harga,0, ',', '.')}}</td>
                   <td class="px-4 py-3 text-center">
                       <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-sm">
                           {{ $item->stok }} pcs

@@ -78,7 +78,8 @@
 
                         <div>
                             <h2 class="text-2xl font-bold text-gray-800" x-text="selectedProduct?.nama_produk"></h2>
-                            <p class="text-xl font-semibold text-indigo-600" x-text="'Rp ' + selectedProduct?.harga"></p>
+                            <p class="text-xl font-semibold text-indigo-600" x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(selectedProduct?.harga)"></p>
+
                         </div>
                     </div>
 

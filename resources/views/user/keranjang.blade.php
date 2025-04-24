@@ -33,10 +33,15 @@
       <div class="space-y-4">
         @php $totalKeseluruhan = 0; @endphp
         @foreach ($keranjangs->items as $item)
-          @php
-            $subtotal = $item->produk->harga * $item->quantity;
-            $totalKeseluruhan += $subtotal;
-          @endphp
+        {{-- @dd($item->quantity); --}}
+        @php
+           $harga = (int) preg_replace('/[^\d]/', '', $item->produk->harga);
+          //  @dd($item->produk->harga);
+    $qty = (int) $item->quantity;
+    $subtotal = $harga * $qty;
+    $totalKeseluruhan += $subtotal;
+      @endphp
+      
           <div class="bg-white shadow-lg rounded-lg p-4 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 transition duration-300 ease-in-out hover:shadow-xl">
             <div class="flex-shrink-0">
               <input type="checkbox" name="selected_items[]" value="{{ $item->produk->id }}" class="item-checkbox form-checkbox h-5 w-5 text-blue-600">
@@ -49,8 +54,7 @@
             <div class="flex-grow text-center md:text-left">
               <h2 class="text-lg font-semibold text-gray-800">{{ $item->produk->nama_produk }}</h2>
               <p class="text-sm text-gray-500 mt-1">{{ $item->produk->deskripsi }}</p>
-              <p class="text-md font-medium text-blue-600 mt-2">Harga: Rp {{ number_format($item->produk->harga, 0, ',', '.') }}</p>
-
+              <p class="text-md font-medium text-blue-600 mt-2">Harga: Rp {{ number_format($harga,0, ',', '.') }}</p>
               <form action="#" method="POST" class="mt-3 flex items-center justify-center md:justify-start space-x-2">
                 @csrf
                 @method('PUT')
@@ -70,7 +74,8 @@
             <div class="text-center md:text-right space-y-2 md:space-y-3">
               <p class="text-lg font-semibold text-gray-900 subtotal" id="subtotal-{{ $item->id }}">
                 Subtotal: Rp {{ number_format($subtotal, 0, ',', '.') }}
-              </p>
+            </p>
+              
               <form action="{{ route('keranjang.destroy',[
                 'product_id' => $item->produk->id,
               ]) }}" method="POST" class="inline-block">

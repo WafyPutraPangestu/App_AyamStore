@@ -28,11 +28,11 @@ class Order extends Model
     }
     public function produk()
     {
-        return $this->belongsToMany(Produk::class, 'produk_id');
+        return $this->belongsTo(Produk::class, 'produk_id');
     }
     public function keranjangs()
     {
-        return $this->belongsToMany(Keranjang::class, 'keranjang_id');
+        return $this->belongsTo(Keranjang::class, 'keranjang_id');
     }
     public function items()
     {
