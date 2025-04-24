@@ -70,7 +70,7 @@ class PembayaranController extends Controller
 
     public function success(Pembayaran $pembayaran)
     {
-        $pembayaran->status = 'lunas';
+        $pembayaran->status = 'berhasil';
         $pembayaran->save();
         return view('user.success', compact('pembayaran'));
     }
@@ -78,5 +78,16 @@ class PembayaranController extends Controller
     public function successView()
     {
         return view('user.success');
+    }
+
+
+
+    public function riwayat()
+    {
+        $riwayat = pembayaran::with([
+            'order.user',
+            'order.items.produk'
+        ])->latest()->simplePaginate(3);
+        return view('user.riwayat', compact('riwayat'));
     }
 }

@@ -30,6 +30,10 @@ class Order extends Model
     {
         return $this->belongsTo(Produk::class, 'produk_id');
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
     public function keranjangs()
     {
         return $this->belongsTo(Keranjang::class, 'keranjang_id');

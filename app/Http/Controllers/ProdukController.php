@@ -140,22 +140,16 @@ class ProdukController extends Controller
      */
     public function destroy(Produk $produk)
     {
-
-        $dalemkeranjang = $produk->keranjangItems()->exists();
-        if ($dalemkeranjang) {
+        if ($produk->keranjangItems()->exists()) {
             return redirect()->route("admin.dataProduk")
                 ->with("error", "Produk tidak dapat dihapus karena masih ada di keranjang.");
         }
-        $dalemorder = $produk->order()->exists();
-        if ($dalemorder) {
-            return redirect()->route("admin.dataProduk")
-                ->with("error", "Produk tidak dapat dihapus karena masih ada di order.");
-        }
-        $dalemorderitem = $produk->items()->exists();
-        if ($dalemorderitem) {
+
+        if ($produk->orderItems()->exists()) {
             return redirect()->route("admin.dataProduk")
                 ->with("error", "Produk tidak dapat dihapus karena masih ada di order item.");
         }
+
         try {
             // Hapus gambar terkait produk
             if ($produk->gambar && Storage::disk('public')->exists("images/$produk->gambar")) {

@@ -65,3 +65,91 @@
     content: "";
     @apply absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-indigo-700;
 }
+
+/* Di dalam file CSS/app.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+body {
+    font-family: "Inter", sans-serif;
+    @apply bg-gray-50;
+}
+
+.card {
+    @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 ease-out;
+    border: 1px solid #e5e7eb;
+    transform: translateY(0);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(30, 58, 138, 0.08);
+}
+
+.card::before {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-100 to-indigo-100;
+}
+
+.card h3 {
+    @apply text-lg font-semibold text-gray-800 mb-2;
+    padding: 1.25rem 1.5rem 0;
+}
+
+.card p {
+    @apply text-sm text-gray-600;
+    padding: 0 1.5rem;
+}
+
+.card ul {
+    @apply border-t border-gray-100 mt-4 pt-4;
+    padding: 0 1.5rem 1.5rem;
+}
+
+.card li {
+    @apply bg-gray-50 rounded-lg p-3 mb-2 last:mb-0;
+    border: 1px solid #f3f4f6;
+    transition: transform 0.2s ease;
+}
+
+.card li:hover {
+    transform: translateX(4px);
+    @apply border-blue-100;
+}
+
+/* Status Badge */
+.status {
+    @apply inline-block px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.status[data-status="success"] {
+    @apply bg-green-100 text-green-800;
+}
+
+.status[data-status="pending"] {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+/* Price Highlight */
+.price {
+    @apply text-blue-600 font-medium;
+}
+
+/* Pagination Styling */
+.pagination {
+    @apply flex justify-center mt-8 space-x-2;
+}
+
+.pagination .page-item {
+    @apply rounded-lg;
+}
+
+.pagination .page-link {
+    @apply px-3 py-2 text-gray-600 hover:bg-blue-50 rounded-lg transition-colors;
+}
+
+.pagination .active .page-link {
+    @apply bg-blue-600 text-white;
+}

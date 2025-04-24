@@ -75,6 +75,8 @@ Route::middleware('user')->group(function () {
         Route::get('pembayaran/{pembayaran}', 'chekout')->name('pembayaran');
         Route::get('order-form/success/{pembayaran}', 'success')->name('order-success');
         Route::get('order/success', 'successView')->name('success');
+
+        Route::get('riwayat', 'riwayat')->name('riwayat');
     });
 
 

@@ -32,4 +32,8 @@ class Produk extends Model
     {
         return $this->hasMany(KeranjangsItem::class);
     }
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'produk_id');
+    }
 }
