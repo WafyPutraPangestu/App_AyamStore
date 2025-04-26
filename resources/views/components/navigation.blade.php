@@ -1,122 +1,157 @@
-<header x-data="{ mobileMenuOpen: false }" class="bg-white shadow-sm sticky top-0 z-50">
-    <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16"> {{-- Tinggi standar navigasi --}}
+{{-- resources/views/layouts/navigation.blade.php (atau file header Anda) --}}
 
-            {{-- Logo (Kiri) - Tidak berubah --}}
+{{-- Pastikan logic $cartItemCount sudah DIPERBAIKI dan BEKERJA dari Langkah 0 --}}
+@php
+    $cartItemCount = 0;
+    if (Auth::check() && Auth::user()->can('user')) {
+        // kumpulkan semua cart milik user, lalu hitung total item
+        $carts = Auth::user()->keranjangs()->with('items')->get();
+        $cartItemCount = $carts->sum(function($cart) {
+            return $cart->items->count();
+        });
+    }
+@endphp
+<template x-if="cartItemCount > 0">{{ $cartItemCount }}</template>
+ {{-- Debugging untuk memastikan $cartItemCount berfungsi --}}
+{{-- <div class="text-center mt-4">Cart Item Count: {{ $cartItem
+
+{{-- Header dengan Alpine.js untuk menu mobile dan notif --}}
+{{-- Tambahkan @scroll.window dan :class untuk efek saat scroll (opsional) --}}
+<header x-data="{ mobileMenuOpen: false, cartItemCount: {{ $cartItemCount }}, scrolled: false }"
+        @scroll.window="scrolled = (window.scrollY > 10)" {{-- Deteksi scroll --}}
+        :class="{ 'border-b border-gray-200/80 bg-white/95 backdrop-blur-sm': scrolled, 'bg-white': !scrolled }" {{-- Efek saat scroll --}}
+        class="sticky top-0 z-50 transition-all duration-300 ease-out"> {{-- Transisi untuk bg/border --}}
+    <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+        {{-- Tingkatkan tinggi header untuk lebih banyak ruang --}}
+        <div class="flex justify-between items-center h-18"> {{-- Tinggi ditambah (misal h-18) --}}
+
+            {{-- Logo (Kiri) --}}
             <div class="flex-shrink-0 flex items-center">
-                <a href="/" class="text-xl sm:text-2xl font-bold text-indigo-700 hover:text-indigo-800 transition duration-150 ease-in-out">
+                <a href="/" class="text-lg sm:text-xl font-semibold text-gray-800 hover:opacity-75 transition-opacity duration-200">
                     LOGO ANDA
                 </a>
             </div>
 
-            {{-- Menu Navigasi Utama (Tengah - Desktop) - Tidak berubah --}}
-            <div class="hidden md:flex md:ml-6 md:space-x-2 lg:space-x-4">
+            {{-- Menu Navigasi Utama (Tengah - Desktop) --}}
+            {{-- Beri jarak lebih antar link --}}
+            <div class="hidden md:flex md:items-center md:justify-center md:space-x-5 lg:space-x-7 flex-1"> {{-- flex-1 agar menu mengisi ruang & justify-center --}}
+                {{-- Guest Links --}}
                 @guest
                     <x-nav-link href="/" :active="request()->is('/')">Home</x-nav-link>
+                    <x-nav-link href="/shop" :active="request()->is('shop')">Shop</x-nav-link> {{-- Contoh link e-commerce --}}
                     <x-nav-link href="/about" :active="request()->is('about')">About</x-nav-link>
-                    <x-nav-link href="/contact" :active="request()->is('contact')">Contact</x-nav-link>
                 @endguest
 
+                {{-- Admin Links --}}
                 @can('admin')
-                    <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">Dashboard</x-nav-link>
-                    <x-nav-link href="{{ route('admin.input') }}" :active="request()->routeIs('admin.input')">Input Produk</x-nav-link>
-                    <x-nav-link href="{{ route('admin.dataProduk') }}" :active="request()->routeIs('admin.dataProduk')">Data Produk</x-nav-link>
-                    <x-nav-link href="{{ route('admin.manajemen') }}" :active="request()->routeIs('admin.manajemen')">Manajemen</x-nav-link>
+                    <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard*')">Dashboard</x-nav-link>
+                    <x-nav-link href="{{ route('admin.input') }}" :active="request()->routeIs('admin.input*')">Input Data Produk</x-nav-link>
+
+                    <x-nav-link href="{{ route('admin.dataProduk') }}" :active="request()->routeIs('admin.dataProduk*')">Produk</x-nav-link>
+                    {{-- Tambahkan link admin lain jika perlu --}}
                 @endcan
 
+                {{-- User Links --}}
                 @can('user')
-                    <x-nav-link href="{{ route('user.dashboard') }}" :active="request()->routeIs('user.dashboard')">Dashboard</x-nav-link>
-                    <x-nav-link href="{{ route('user.katalog') }}" :active="request()->routeIs('user.katalog')">Katalog Produk</x-nav-link>
-                     {{-- The cart link with badge will be placed separately in the actions div --}}
-                    <x-nav-link href="{{ route('user.riwayat') }}" :active="request()->routeIs('user.riwayat')">Riwayat</x-nav-link>
+                    <x-nav-link href="{{ route('user.katalog') }}" :active="request()->routeIs('user.katalog*')">Katalog</x-nav-link>
+                    <x-nav-link href="{{ route('user.riwayat') }}" :active="request()->routeIs('user.riwayat*')">Riwayat Transaksi</x-nav-link>
+                    <x-nav-link href="{{ route('user.dashboard') }}" :active="request()->routeIs('user.dashboard*')">Akun</x-nav-link> {{-- Contoh: Dashboard jadi Akun --}}
                 @endcan
             </div>
 
-            {{-- Aksi & Auth (Kanan - Desktop) - **DIPERBARUI** --}}
-            <div class="hidden md:flex md:items-center md:ml-6 md:space-x-5"> {{-- Sedikit menambah space-x jika perlu --}}
-
-                {{-- Logic to get cart item count --}}
-                @php
-                    $cartItemCount = 0; // Default value
-                    // Check if user is logged in AND has the 'user' capability/role (optional @can check)
-                    if (Auth::check() && Auth::user()->can('user')) {
-                        // Assuming User model has a 'keranjang' relation pointing to the user's single Keranjang model
-                        // And Keranjang model has an 'items' relation pointing to KeranjangsItem models
-                        $userCart = Auth::user()->keranjang; // Use the relation
-                        if ($userCart) {
-                            // Sum the quantity of all items in the cart
-                            $cartItemCount = $userCart->items->sum('quantity');
-                        }
-                        // Alternative if User model doesn't have keranjang relation directly:
-                        // $keranjang = \App\Models\Keranjang::where('user_id', Auth::id())->first();
-                        // if ($keranjang) {
-                        //     $cartItemCount = $keranjang->items->sum('quantity');
-                        // }
-                    }
-                @endphp
+            {{-- Aksi (Kanan - Desktop) --}}
+            {{-- Kelompokkan ikon di kanan --}}
+            <div class="hidden md:flex md:items-center md:space-x-4">
 
                 @can('user')
-                    {{-- START: Cart Icon with Badge (Desktop) --}}
+                    {{-- Icon Keranjang dengan Badge Animasi (Pastikan $cartItemCount valid!) --}}
                     <a href="{{ route('user.keranjang') }}" title="Keranjang Belanja"
-                       class="relative p-2 rounded-full text-gray-500 hover:text-indigo-700 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out transform hover:scale-110">
+                       class="relative p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-200 ease-out">
                         <span class="sr-only">Keranjang Belanja</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5h11.1a1 1 0 00.9-1.5L17 13M7 13L5.4 5M17 13l1.6-3.2M6 21a1 1 0 100-2 1 1 0 000 2zm12 0a1 1 0 100-2 1 1 0 000 2z"/>
+                        {{-- Icon keranjang (bisa ganti icon jika mau) --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                         </svg>
-                        {{-- Badge Jumlah Item (Desktop) --}}
-                        @if($cartItemCount > 0)
-                            <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white shadow-sm">{{ $cartItemCount }}</span>
-                        @endif
+
+                        {{-- Badge (Harus berfungsi setelah Langkah 0) --}}
+                        <span x-show="cartItemCount > 0"
+                              x-transition:enter="transition ease-out duration-200 transform"
+                              x-transition:enter-start="opacity-0 scale-50"
+                              x-transition:enter-end="opacity-100 scale-100"
+                              x-transition:leave="transition ease-in duration-150 transform"
+                              x-transition:leave-start="opacity-100 scale-100"
+                              x-transition:leave-end="opacity-0 scale-50"
+                              x-text="cartItemCount"
+                              class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white shadow"> {{-- Warna badge bisa disesuaikan --}}
+                               {{-- Fallback non-JS (opsional) --}}
+                               <template x-if="false">{{ $cartItemCount }}</template>
+                        </span>
                     </a>
-                    {{-- END: Cart Icon with Badge (Desktop) --}}
                 @endcan
 
-                {{-- Tombol/Link Auth (Tidak berubah stylingnya, hanya jaraknya disesuaikan oleh space-x-5 di atas) --}}
+                {{-- Tombol/Link Auth (Ganti dengan icon jika mau) --}}
                 @auth
-                    <x-form method="POST" action="{{ route('auth.logout') }}" class="flex items-center">
+                    {{-- Contoh: Dropdown Akun (Membutuhkan Alpine tambahan atau library dropdown) --}}
+                    {{-- <x-dropdown-akun /> --}}
+                    {{-- Atau Tombol Logout Sederhana --}}
+                     <x-form method="POST" action="{{ route('auth.logout') }}">
                         @csrf
-                        <button type="submit"
-                                class="group inline-flex items-center relative px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden rounded-md text-gray-600 hover:text-indigo-700 hover:bg-indigo-50">
-                            Logout
-                            <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
+                        <button type="submit" title="Logout" class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-200 ease-out">
+                            <span class="sr-only">Logout</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                            </svg>
                         </button>
                     </x-form>
                 @endauth
 
                 @guest
-                    <x-nav-link href="{{ route('auth.login') }}" :active="request()->routeIs('auth.login')">Login</x-nav-link>
-                    <x-nav-link href="{{ route('auth.register') }}" :active="request()->routeIs('auth.register')">Register</x-nav-link>
+                    {{-- Icon Login --}}
+                    <a href="{{ route('auth.login') }}" title="Login" class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-200 ease-out">
+                         <span class="sr-only">Login</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                         </svg>
+                    </a>
+                    {{-- Tombol Register --}}
+                    <a href="{{ route('auth.register') }}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gray-800 border border-transparent rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                        Register
+                    </a>
                 @endguest
             </div>
 
-            {{-- Tombol Hamburger (Mobile) - **BAGIAN KERANJANG DIPERBARUI** --}}
-            <div class="-mr-2 flex items-center md:hidden">
-                 {{-- Re-use the $cartItemCount variable calculated above --}}
-                @can('user')
-                     {{-- START: Cart Icon with Badge (Mobile) --}}
-                    {{-- Terapkan style yang sama untuk ikon keranjang di mobile --}}
+            {{-- Tombol Hamburger (Mobile) --}}
+            <div class="flex items-center md:hidden">
+                 @can('user')
+                    {{-- Icon Keranjang Mobile (Wajib berfungsi!) --}}
                     <a href="{{ route('user.keranjang') }}" title="Keranjang Belanja"
-                       class="relative mr-2 p-2 rounded-full text-gray-500 hover:text-indigo-700 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out transform hover:scale-110">
-                        <span class="sr-only">Keranjang Belanja</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7a1 1 0 00.9 1.5h11.1a1 1 0 00.9-1.5L17 13M7 13L5.4 5M17 13l1.6-3.2M6 21a1 1 0 100-2 1 1 0 000 2zm12 0a1 1 0 100-2 1 1 0 000 2z"/>
-                        </svg>
-                        {{-- Badge Jumlah Item Mobile --}}
-                        {{-- Re-use the $cartItemCount variable calculated above --}}
-                        @if($cartItemCount > 0)
-                            <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white shadow-sm">{{ $cartItemCount }}</span>
-                        @endif
+                       class="relative mr-2 p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-200 ease-out">
+                         <span class="sr-only">Keranjang Belanja</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                         </svg>
+                         {{-- Badge Mobile --}}
+                         <span x-show="cartItemCount > 0"
+                               x-transition:enter="transition ease-out duration-200 transform"
+                               x-transition:enter-start="opacity-0 scale-50"
+                               x-transition:enter-end="opacity-100 scale-100"
+                               x-transition:leave="transition ease-in duration-150 transform"
+                               x-transition:leave-start="opacity-100 scale-100"
+                               x-transition:leave-end="opacity-0 scale-50"
+                               x-text="cartItemCount"
+                               class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white shadow">
+                                <template x-if="false">{{ $cartItemCount }}</template>
+                         </span>
                     </a>
-                     {{-- END: Cart Icon with Badge (Mobile) --}}
                 @endcan
 
                 {{-- Tombol Hamburger --}}
-                <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" :aria-expanded="mobileMenuOpen.toString()">
-                    <span class="sr-only">Buka menu utama</span>
-                    <svg class="block h-6 w-6" :class="{ 'hidden': mobileMenuOpen, 'block': !mobileMenuOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition duration-150 ease-in-out" aria-controls="mobile-menu" :aria-expanded="mobileMenuOpen.toString()">
+                    <span class="sr-only">Buka menu</span>
+                    <svg class="h-6 w-6" :class="{ 'hidden': mobileMenuOpen, 'block': !mobileMenuOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
-                    <svg class="hidden h-6 w-6" :class="{ 'block': mobileMenuOpen, 'hidden': !mobileMenuOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <svg class="h-6 w-6" :class="{ 'block': mobileMenuOpen, 'hidden': !mobileMenuOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
@@ -125,50 +160,78 @@
         </div>
     </nav>
 
-    {{-- Panel Menu Mobile - Tidak berubah --}}
-    <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="md:hidden absolute top-16 inset-x-0 p-2 transition transform origin-top-right bg-white shadow-lg ring-1 ring-black ring-opacity-5" id="mobile-menu" @click.away="mobileMenuOpen = false">
-       {{-- ... Konten menu mobile Anda ... --}}
-       <div class="pt-2 pb-3 space-y-1">
+    {{-- Panel Menu Mobile (Lebih Bersih) --}}
+    <div x-show="mobileMenuOpen"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-4"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-4"
+         class="md:hidden absolute top-full inset-x-0 shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+         id="mobile-menu"
+         @click.away="mobileMenuOpen = false"
+         style="display: none;" {{-- Hindari FOUC --}}
+         >
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            {{-- Style Link Mobile Baru --}}
+            @php
+            $mobileLinkBase = 'block px-3 py-2 rounded-md text-base font-medium transition-colors duration-150 ease-in-out';
+            $mobileLinkActive = 'bg-gray-100 text-gray-900';
+            $mobileLinkInactive = 'text-gray-500 hover:bg-gray-50 hover:text-gray-900';
+            @endphp
+
+            {{-- Guest Links --}}
             @guest
-                <x-nav-link href="/" :active="request()->is('/')" class="block !px-3 !py-2 !text-base">Home</x-nav-link> {{-- Paksa block & sesuaikan padding/ukuran teks --}}
-                <x-nav-link href="/about" :active="request()->is('about')" class="block !px-3 !py-2 !text-base">About</x-nav-link>
-                <x-nav-link href="/contact" :active="request()->is('contact')" class="block !px-3 !py-2 !text-base">Contact</x-nav-link>
+                <a href="/" class="{{ $mobileLinkBase }} {{ request()->is('/') ? $mobileLinkActive : $mobileLinkInactive }}">Home</a>
+                <a href="/shop" class="{{ $mobileLinkBase }} {{ request()->is('shop') ? $mobileLinkActive : $mobileLinkInactive }}">Shop</a>
+                <a href="/about" class="{{ $mobileLinkBase }} {{ request()->is('about') ? $mobileLinkActive : $mobileLinkInactive }}">About</a>
             @endguest
 
-            @can('admin')
-                <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')" class="block !px-3 !py-2 !text-base">Dashboard</x-nav-link>
-                <x-nav-link href="{{ route('admin.input') }}" :active="request()->routeIs('admin.input')" class="block !px-3 !py-2 !text-base">Input Produk</x-nav-link>
-                <x-nav-link href="{{ route('admin.dataProduk') }}" :active="request()->routeIs('admin.dataProduk')" class="block !px-3 !py-2 !text-base">Data Produk</x-nav-link>
-                <x-nav-link href="{{ route('admin.manajemen') }}" :active="request()->routeIs('admin.manajemen')" class="block !px-3 !py-2 !text-base">Manajemen</x-nav-link>
+            {{-- Admin Links --}}
+             @can('admin')
+                <a href="{{ route('admin.dashboard') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('admin.dashboard*') ? $mobileLinkActive : $mobileLinkInactive }}">Dashboard</a>
+                <a href="{{ route('admin.dataProduk') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('admin.dataProduk*') ? $mobileLinkActive : $mobileLinkInactive }}">Produk</a>
+                 {{-- Tambahkan link admin lain jika perlu --}}
             @endcan
 
+            {{-- User Links --}}
             @can('user')
-                <x-nav-link href="{{ route('user.dashboard') }}" :active="request()->routeIs('user.dashboard')" class="block !px-3 !py-2 !text-base">Dashboard</x-nav-link>
-                <x-nav-link href="{{ route('user.katalog') }}" :active="request()->routeIs('user.katalog')" class="block !px-3 !py-2 !text-base">Katalog Produk</x-nav-link>
-                 {{-- Add Cart link in mobile menu as well --}}
-                 <x-nav-link href="{{ route('user.keranjang') }}" :active="request()->routeIs('user.keranjang')" class="block !px-3 !py-2 !text-base">
-                     Keranjang Belanja
-                     @if($cartItemCount > 0)
-                          {{-- Display count inline or as badge here --}}
-                         ({{ $cartItemCount }})
-                     @endif
-                 </x-nav-link>
-                <x-nav-link href="{{ route('user.riwayat') }}" :active="request()->routeIs('user.riwayat')" class="block !px-3 !py-2 !text-base">Riwayat</x-nav-link>
+                <a href="{{ route('user.katalog') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('user.katalog*') ? $mobileLinkActive : $mobileLinkInactive }}">Katalog</a>
+                <a href="{{ route('user.riwayat') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('user.riwayat*') ? $mobileLinkActive : $mobileLinkInactive }}">Pesanan</a>
+                <a href="{{ route('user.dashboard') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('user.dashboard*') ? $mobileLinkActive : $mobileLinkInactive }}">Akun</a>
+                 {{-- Link Keranjang Mobile dengan count (jika berfungsi) --}}
+                 <a href="{{ route('user.keranjang') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('user.keranjang') ? $mobileLinkActive : $mobileLinkInactive }} flex justify-between items-center">
+                    <span>Keranjang</span>
+                    <span x-show="cartItemCount > 0" x-text="cartItemCount" class="bg-indigo-100 text-indigo-600 text-xs font-medium px-2 py-0.5 rounded-full"></span>
+                     <template x-if="false"><span class="bg-indigo-100 text-indigo-600 text-xs font-medium px-2 py-0.5 rounded-full">{{$cartItemCount}}</span></template> {{-- Fallback --}}
+                </a>
             @endcan
+
         </div>
+         {{-- Auth Links Mobile --}}
         <div class="pt-4 pb-3 border-t border-gray-200">
-            @auth
-                <x-form method="POST" action="{{ route('auth.logout') }}">
-                    @csrf
-                    <button type="submit" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-indigo-700 hover:bg-indigo-50">
-                        Logout
-                    </button>
-                </x-form>
+             @auth
+                <div class="px-2">
+                    <x-form method="POST" action="{{ route('auth.logout') }}">
+                        @csrf
+                        <button type="submit" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out">
+                            Logout
+                        </button>
+                    </x-form>
+                </div>
             @endauth
             @guest
-                <x-nav-link href="{{ route('auth.login') }}" :active="request()->routeIs('auth.login')" class="block !px-3 !py-2 !text-base">Login</x-nav-link>
-                <x-nav-link href="{{ route('auth.register') }}" :active="request()->routeIs('auth.register')" class="block !px-3 !py-2 !text-base">Register</x-nav-link>
+                <div class="px-2 space-y-1">
+                    <a href="{{ route('auth.login') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('auth.login') ? $mobileLinkActive : $mobileLinkInactive }}">Login</a>
+                    <a href="{{ route('auth.register') }}" class="{{ $mobileLinkBase }} {{ request()->routeIs('auth.register') ? $mobileLinkActive : $mobileLinkInactive }} bg-gray-800 text-white hover:bg-gray-700 text-center">Register</a> {{-- Tombol Register Mobile --}}
+                </div>
             @endguest
         </div>
     </div>
 </header>
+
+{{-- Pastikan untuk menambahkan Alpine.js di bagian bawah body --}}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{{-- Atau jika menggunakan CDN --}}
+{{-- <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script> --}}

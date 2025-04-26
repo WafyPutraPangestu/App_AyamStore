@@ -36,7 +36,7 @@
 </head>
 {{-- Tambahkan background abu-abu sangat muda ke body --}}
 <body class="bg-gray-50 font-sans antialiased">
-    @unless (request()->is('auth/login') || request()->is('auth/register'))
+    @unless (request()->is('auth/login') || request()->is('user/order-form') || request()->is('auth/register'))
         {{-- Pastikan komponen navigasi Anda juga di-styling --}}
         <x-navigation />
     @endunless

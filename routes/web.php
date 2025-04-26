@@ -75,9 +75,14 @@ Route::middleware('user')->group(function () {
         Route::get('pembayaran/{pembayaran}', 'chekout')->name('pembayaran');
         Route::get('order-form/success/{pembayaran}', 'success')->name('order-success');
         Route::get('order/success', 'successView')->name('success');
+        Route::get('order-form/pending/{pembayaran}', 'pending')->name('order-pending'); // <-- Route Baru Pending
+        Route::get('order-form/failed/{pembayaran}', 'failed')->name('order-failed');
 
         Route::get('riwayat', 'riwayat')->name('riwayat');
     });
+    Route::delete('/user/delete/{order}', [OrderController::class, 'cancelOrder'])->name('user.delete');
+
+
 
 
     // Rute untuk menampilkan form pemesanan (GET)
