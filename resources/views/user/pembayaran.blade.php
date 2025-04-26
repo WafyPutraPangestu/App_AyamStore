@@ -1,9 +1,9 @@
 <x-layout>
-  <h1>test</h1>
-   @if(isset($pembayaran) && $pembayaran->snap_token)
-  <div class="mt-4">
-    <button id="pay-button" class="btn btn-primary">Bayar Sekarang</button>
-  </div>
+  <h1 class="text-3xl font-bold mb-6">test</h1>
+@if(isset($pembayaran) && $pembayaran->snap_token)
+<div class="mt-4">
+  <button id="pay-button" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1">Bayar Sekarang</button>
+</div>
 
   <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 

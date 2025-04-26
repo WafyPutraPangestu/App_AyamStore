@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->decimal('total_harga', 12, 2);
-            $table->enum('status', ['pending', 'selesai'])->default('pending');
+            $table->enum('status', ['pending', 'selesai', 'gagal'])->default('pending');
             $table->timestamps();
         });
     }
