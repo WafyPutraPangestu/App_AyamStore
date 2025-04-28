@@ -22,7 +22,22 @@ class PembayaranController extends Controller
 
     public function mockCheckout(Request $request)
     {
+        // Validasi input
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'total_harga' => 'required|numeric|min:1',
+            'alamat_pengiriman' => 'required|string' // Validasi input alamat
+        ]);
+
         $orderId = $request->order_id;
+
+        // Update alamat pengiriman di tabel orders
+        $order = Order::find($orderId);
+        if ($order) {
+            $order->alamat_pengiriman = $request->alamat_pengiriman;
+            $order->save();
+        }
+
         $MidtransId = 'ORDER-' . time() . '-' . rand(1000, 9999);
 
         $transaction = Pembayaran::create([
@@ -44,10 +59,27 @@ class PembayaranController extends Controller
             'customer_details' => [
                 'first_name' => Auth::user()->name,
                 'email' => Auth::user()->email,
+                'shipping_address' => [
+                    'address' => $request->alamat_pengiriman // Tambahkan alamat ke Midtrans juga
+                ]
             ],
         ];
 
-        $snapToken = \Midtrans\Snap::getSnapToken($params);
+        // Log::info("Parameter Midtrans: " . json_encode($params)); // Baris ini sempat ada di log, bisa diaktifkan lagi untuk debugging
+
+        try {
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+        } catch (\Exception $e) {
+            Log::error("Midtrans SnapToken Error: " . $e->getMessage(), ['exception' => $e]); // Log full exception
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.');
+        }
+
+
+        if (!$snapToken) {
+            Log::error("Snap token tidak diterima dari Midtrans. Response kemungkinan kosong."); // Log lebih spesifik
+            return redirect()->back()->with('error', 'Token pembayaran tidak tersedia.');
+        }
+
 
         $transaction->snap_token = $snapToken;
         $transaction->save();

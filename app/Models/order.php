@@ -12,11 +12,14 @@ class Order extends Model
 
 
     protected $fillable = [
-        'produk_id',
-        'keranjang_id',
-        'status',
         'user_id',
+        'kurir_id',
+        'alamat_pengiriman',
+        'ongkir',
         'total_harga',
+        'total',
+        'status',
+        'status_pengiriman',
     ];
     protected $guarded = ['total_harga'];
 
@@ -26,18 +29,22 @@ class Order extends Model
     {
         return $this->hasMany(Pembayaran::class);
     }
-    public function produk()
-    {
-        return $this->belongsTo(Produk::class, 'produk_id');
-    }
+    // public function produk()
+    // {
+    //     return $this->belongsTo(Produk::class, 'produk_id');
+    // }
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    public function keranjangs()
+    public function kurir()
     {
-        return $this->belongsTo(Keranjang::class, 'keranjang_id');
+        return $this->belongsTo(kurir::class, 'kurir_id');
     }
+    // public function keranjangs()
+    // {
+    //     return $this->belongsTo(Keranjang::class, 'keranjang_id');
+    // }
     public function items()
     {
         return $this->hasMany(OrderItem::class, 'orders_id');

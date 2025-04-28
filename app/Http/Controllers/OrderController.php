@@ -54,200 +54,164 @@ class OrderController extends Controller
             Log::info("User ID " . Auth::user()->id . " memiliki pesanan pending ID " . $existingPendingOrder->id . ". Mencegah checkout baru dan mengarahkan ke halaman order form pending."); // <-- Log Ditemukan Pending
 
             // Cari pembayaran terkait order ini jika ada, untuk mendapatkan ID pembayaran
-            // Menggunakan relasi pembayaran() yang mungkin ada di model Order
             $pendingPayment = null;
             if (method_exists($existingPendingOrder, 'pembayaran')) {
                 $pendingPayment = $existingPendingOrder->pembayaran()->first(); // Ambil pembayaran pertama terkait order ini
             }
 
-
             // Mengembalikan respons JSON yang memberitahu frontend (JS di keranjang) untuk redirect.
-            // Status HTTP 409 Conflict digunakan untuk menandakan bahwa resource (order baru)
-            // tidak dapat dibuat karena ada resource lain (order pending) yang berkonflik.
             return response()->json([
                 'success' => false, // Tandai sebagai tidak berhasil membuat order baru
                 'message' => 'Anda memiliki transaksi yang belum selesai. Mohon selesaikan pembayaran sebelumnya.',
                 'redirect_to_payment' => true, // Flag untuk JS frontend agar tahu harus redirect
                 'order_id' => $existingPendingOrder->id, // Kirim ID order pending untuk redirect
-                // Kirim ID pembayaran jika ditemukan, jika tidak kirim null
-                'pembayaran_id' => $pendingPayment ? $pendingPayment->id : null,
+                'pembayaran_id' => $pendingPayment ? $pendingPayment->id : null, // ID pembayaran
             ], 409); // 409 Conflict
-
         } else {
             Log::debug("No existing pending order found (order status only) for user ID: " . Auth::id()); // <-- Log Tidak Ditemukan Pending
         }
         // --- END: Implementasi Cek Pesanan Pending ---
 
-
-        // --- START: Logika Pembuatan Order Baru (jika tidak ada pending) ---
-        // Jika tidak ada pesanan pending (berdasarkan status order), lanjutkan proses pembuatan order baru.
+        // --- START: Logika Pembuatan Order Baru ---
         DB::beginTransaction(); // Mulai transaksi database untuk memastikan atomisitas operasi.
 
         try {
             // Cari keranjang belanja user yang sedang login.
-            // Asumsikan keranjang selalu ada untuk user yang login.
             $keranjang = Keranjang::where('user_id', Auth::user()->id)->first();
             if (!$keranjang) {
-                DB::rollBack(); // Rollback jika keranjang tidak ditemukan (kasus seharusnya jarang)
+                DB::rollBack();
                 return response()->json(['error' => 'Keranjang belanja Anda tidak ditemukan.'], 404); // Not Found
             }
 
             // Validasi format request (harus JSON).
             if (!$request->isJson()) {
-                DB::rollBack(); // Rollback jika format request salah
+                DB::rollBack();
                 return response()->json(['error' => 'Invalid request. Expected JSON.'], 400); // Bad Request
             }
 
-            // Ambil item yang dipilih dari request body (dikirim oleh JS frontend).
+            // Ambil item yang dipilih dari request body.
             $selectedItems = $request->input('selected_items');
 
             // Validasi apakah ada item yang dipilih.
             if (empty($selectedItems)) {
-                DB::rollBack(); // Rollback jika tidak ada item dipilih
+                DB::rollBack();
                 return response()->json(['error' => 'Pilih minimal satu produk untuk checkout.'], 422); // Unprocessable Entity
             }
 
-            // Hitung ulang total harga produk yang dipilih dari database untuk keamanan.
+            // Hitung total harga produk yang dipilih dari database.
             $calculatedProductTotal = 0;
-            $itemDetailsForOrder = []; // Array untuk menampung data item yang akan disimpan di tabel order_items.
-            $itemIdsInCart = []; // Array untuk menampung ID item keranjang yang akan dihapus SETELAH order berhasil dibuat.
+            $itemDetailsForOrder = [];
+            $itemIdsInCart = [];
 
-            // Loop melalui item yang dipilih dari frontend.
             foreach ($selectedItems as $itemData) {
-                // Cari produk di database berdasarkan produk_id yang dikirim frontend.
                 $produk = Produk::find($itemData['produk_id']);
                 if (!$produk) {
-                    DB::rollBack(); // Rollback jika produk tidak ditemukan di database (mungkin sudah dihapus).
+                    DB::rollBack();
                     return response()->json(['error' => 'Produk dengan ID ' . $itemData['produk_id'] . ' tidak ditemukan saat checkout.'], 404); // Not Found
                 }
 
-                // Ambil kuantitas dari request, pastikan > 0.
                 $quantity = (int) $itemData['quantity'];
                 if ($quantity <= 0) {
-                    DB::rollBack(); // Rollback jika kuantitas tidak valid.
+                    DB::rollBack();
                     return response()->json(['error' => 'Kuantitas untuk produk ' . $produk->nama_produk . ' harus lebih dari 0.'], 422); // Unprocessable Entity
                 }
-                // Opsional: Cek stok produk di database jika diperlukan.
-                // if ($quantity > $produk->stok) {
-                //      DB::rollBack();
-                //       return response()->json(['error' => 'Stok produk ' . $produk->nama_produk . ' tidak mencukupi.'], 422);
-                // }
 
-                // Ambil harga produk saat ini dari database (harga live).
-                $harga = (float) preg_replace('/[^\d]/', '', $produk->harga); // Bersihkan format harga jika masih string.
-                $subtotal = $harga * $quantity; // Hitung subtotal untuk item ini.
-                $calculatedProductTotal += $subtotal; // Tambahkan ke total harga produk keseluruhan.
+                // Hitung subtotal untuk item ini.
+                $harga = (float) preg_replace('/[^\d]/', '', $produk->harga);
+                $subtotal = $harga * $quantity;
+                $calculatedProductTotal += $subtotal;
 
-                // Siapkan data item untuk disimpan di tabel order_items.
+                // Simpan data item untuk disimpan di tabel order_items.
                 $itemDetailsForOrder[] = [
                     'produk_id' => $produk->id,
                     'quantity' => $quantity,
-                    'price_per_item' => $harga, // Simpan harga produk saat order dibuat (harga snapshot).
-                    'subtotal' => $subtotal, // Simpan subtotal item.
-                    // 'orders_id' akan diisi otomatis oleh relasi hasMany saat createMany dipanggil.
+                    'price_per_item' => $harga,
+                    'subtotal' => $subtotal,
                 ];
 
-                // Kumpulkan ID item keranjang yang sesuai untuk dihapus nanti.
-                // Cari item di keranjang user berdasarkan produk_id.
-                // Mengambil item pertama yang cocok.
+                // Kumpulkan ID item keranjang yang sesuai untuk dihapus setelah order berhasil dibuat.
                 $cartItem = $keranjang->items()->where('produk_id', $produk->id)->first();
-
                 if ($cartItem) {
-                    $itemIdsInCart[] = $cartItem->id; // Kumpulkan KeranjangsItem ID.
-                } else {
-                    // Ini kasus aneh jika item tidak ditemukan di keranjang padahal dipilih di frontend.
-                    Log::warning("Item keranjang tidak ditemukan untuk produk ID " . $produk->id . " saat checkout oleh user " . Auth::id() . ". Mungkin ada isu sinkronisasi frontend/backend.");
-                    // Anda bisa memilih untuk mengabaikan item ini, error, atau log saja.
-                    // Untuk saat ini, kita lanjutkan tapi log warning.
+                    $itemIdsInCart[] = $cartItem->id;
                 }
             }
 
-            // *** LOGIKA PENENTUAN BIAYA PENGIRIMAN ***
-            // Anda perlu menambahkan logika untuk menghitung dan menambahkan biaya pengiriman di sini.
-            // Biaya pengiriman ini akan dimasukkan ke total_harga order.
-            $deliveryCost = 0; // Default biaya pengiriman adalah 0.
-            // Contoh: biaya pengiriman flat rate
-            // $deliveryCost = 15000;
-            // Contoh: biaya berdasarkan alamat user, berat total order, pilihan kurir jika ada di checkout.
-            // Anda perlu menerima data alamat dan/atau pilihan kurir dari frontend saat checkout.
-            // $shippingAddressData = $request->input('shipping_address_data'); // Contoh data alamat dari frontend.
-            // $chosenKurirId = $request->input('kurir_id'); // Contoh ID kurir jika dipilih di frontend.
+            // --- HITUNG ONGKIR --- (Langsung di sini)
+            // Ambil data alamat pengiriman dari request.
+            $shippingAddress = $request->input('shipping_address');
+            $deliveryCost = 15000; // Biaya pengiriman default.
 
-            // Panggil method helper untuk menghitung biaya pengiriman jika logikanya kompleks.
-            // $deliveryCost = $this->calculateDeliveryCost($shippingAddressData, $calculatedProductTotal, $itemDetailsForOrder, $chosenKurirId);
+            // Jika ada alamat pengiriman, kita hitung ongkir lebih dinamis
+            if ($shippingAddress) {
+                // Misalnya, kita bisa menambah logika untuk menghitung ongkir berdasarkan alamat atau kurir
+                // Contoh logika: biaya pengiriman berdasarkan alamat atau metode kurir
+                $baseShippingCost = 15000; // Ongkir dasar
+                $weightSurcharge = 0;
 
+                // Tambah biaya tambahan berdasarkan berat produk atau wilayah pengiriman
+                if ($shippingAddress['city'] == 'Jakarta') {
+                    $baseShippingCost += 5000; // Tambah biaya untuk Jakarta
+                }
 
-            // Hitung total akhir (total harga produk + biaya pengiriman).
+                // Hitung total berat produk dalam order
+                $totalWeight = 0;
+                foreach ($itemDetailsForOrder as $item) {
+                    $totalWeight += $item['quantity'] * $produk->weight; // Misalnya ada field 'weight' pada produk
+                }
+
+                if ($totalWeight > 10) {
+                    $weightSurcharge = 10000; // Biaya tambahan jika berat > 10kg
+                }
+
+                $deliveryCost = $baseShippingCost + $weightSurcharge;
+            }
+
+            // Total akhir = harga produk + ongkir.
             $finalTotal = $calculatedProductTotal + $deliveryCost;
 
-            // Validasi total akhir.
             if ($finalTotal <= 0) {
-                DB::rollBack(); // Rollback jika total tidak valid.
+                DB::rollBack();
                 return response()->json(['error' => 'Total harga pesanan tidak valid.'], 422); // Unprocessable Entity
             }
 
-            // Buat record Order baru di tabel 'orders'.
+            // Buat order baru.
             $order = Order::create([
-                'user_id' => Auth::user()->id, // ID user yang sedang login.
-                'total_harga' => $finalTotal, // Total harga termasuk ongkir.
-                'status' => 'pending', // Status awal pesanan: pending pembayaran.
-                // *** KOLOM PENGIRIMAN ***
-                // Simpan data alamat pengiriman di sini jika belum ada di migrasi atau jika disimpan langsung.
-                // Pastikan kolom-kolom ini ada di migrasi tabel 'orders'.
-                // 'shipping_address' => $request->input('shipping_address'), // Perlu terima dari frontend.
-                // 'shipping_city' => $request->input('shipping_city'), // Perlu terima dari frontend.
-                // 'shipping_postal_code' => $request->input('shipping_postal_code'), // Perlu terima dari frontend.
-                'delivery_cost' => $deliveryCost, // Simpan biaya pengiriman.
-                // Simpan ID kurir jika dipilih di frontend saat checkout (jika pakai tabel kurirs).
-                // 'kurir_id' => $chosenKurirId ?? null,
-                // Status pengiriman awal (jika kolom delivery_status ada di migrasi orders).
-                // if (Schema::hasColumn('orders', 'delivery_status')) {
-                //     'delivery_status' => 'awaiting_payment', // Atau 'not_shipped'. Sesuaikan dengan enum Anda.
-                // }
+                'user_id' => Auth::user()->id,
+                'total_harga' => $calculatedProductTotal, // Total harga produk tanpa ongkir
+                'total' => $finalTotal, // Total harga produk + ongkir
+                'ongkir' => $deliveryCost, // Simpan ongkir
+                'status' => 'pending',
+                'status_pengiriman' => 'mencari_kurir', // Status pengiriman awal
             ]);
 
-            // Simpan item-item ke tabel order_items menggunakan relasi hasMany.
-            // Pastikan relasi `items()` sudah didefinisikan di model Order.php
-            // yang merujuk ke model OrderItem dan foreign key 'orders_id'.
+            // Simpan item ke tabel order_items.
             $order->items()->createMany($itemDetailsForOrder);
 
-
-            // Hapus item dari keranjang yang berhasil dipindahkan ke order.
+            // Hapus item dari keranjang.
             if (!empty($itemIdsInCart)) {
-                // Pastikan nama model KeranjangsItem sudah benar.
-                // Menghapus item keranjang berdasarkan ID yang sudah dikumpulkan.
                 KeranjangsItem::whereIn('id', $itemIdsInCart)->delete();
-                Log::info("Menghapus item keranjang ID: " . implode(', ', $itemIdsInCart) . " untuk user ID " . Auth::user()->id . " setelah order ID " . $order->id . " dibuat.");
             }
 
+            DB::commit();
 
-            DB::commit(); // Commit transaksi database jika semua operasi berhasil.
-
-            Log::info("Order baru ID " . $order->id . " berhasil dibuat untuk user ID " . Auth::user()->id);
-
-            // Mengembalikan respons JSON yang memberitahu frontend untuk redirect ke halaman order-form baru.
+            // Mengembalikan respons JSON untuk redirect.
             return response()->json([
                 'success' => true,
                 'message' => 'Pesanan berhasil dibuat. Silakan selesaikan pembayaran.',
-                'order_id' => $order->id, // Kirim ID order yang baru dibuat untuk redirect.
-                // Buat URL redirect ke halaman order-form untuk order yang baru dibuat.
+                'order_id' => $order->id,
                 'redirect_url' => route('user.order-form', $order->id),
             ], 200); // OK
 
-
         } catch (\Exception $e) {
-            DB::rollBack(); // Rollback transaksi database jika terjadi error.
-            Log::error('Error creating order: ' . $e->getMessage(), [
-                'user_id' => Auth::user()->id,
-                'stack' => $e->getTraceAsString(),
-                // Log request data jika perlu debug.
-                // 'request_data' => $request->all(),
-            ]);
-            // Mengembalikan respons error ke frontend.
-            return response()->json(['error' => 'Terjadi kesalahan saat memproses pesanan.', 'details' => $e->getMessage()], 500); // Internal Server Error
+            DB::rollBack();
+            Log::error('Error creating order: ' . $e->getMessage(), ['user_id' => Auth::user()->id, 'stack' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Terjadi kesalahan saat memproses pesanan.', 'details' => $e->getMessage()], 500);
         }
         // --- END: Logika Pembuatan Order Baru ---
     }
+
+
+
 
     /**
      * Handle the cancellation of a pending order by the user.
@@ -276,13 +240,10 @@ class OrderController extends Controller
         DB::beginTransaction(); // Mulai transaksi database untuk memastikan atomisitas operasi hapus.
 
         try {
-            // Hapus order.
-            // Karena Anda sudah mengatur cascadeOnDelete di migrasi tabel order_items dan pembayaran,
-            // semua item order (orders_items) dan pembayaran (pembayaran) yang terkait dengan order ini
-            // akan otomatis terhapus ketika record order dihapus.
+
             $orderId = $order->id; // Simpan ID order sebelum dihapus untuk logging.
 
-            // Lakukan penghapusan order.
+
             $order->delete();
 
             DB::commit(); // Commit transaksi jika penghapusan berhasil.
