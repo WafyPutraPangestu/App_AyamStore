@@ -1,9 +1,7 @@
 <x-layout>
-    {{-- Container utama dengan padding --}}
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-8">Keranjang Belanja Anda</h1>
 
-        {{-- Kondisi Jika Keranjang Kosong --}}
         @if($keranjangs == null || $keranjangs->items->isEmpty())
             <div class="bg-white shadow-md rounded-lg p-10 text-center border border-gray-200">
                 <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -19,12 +17,8 @@
                 </a>
             </div>
         @else
-            {{-- Layout Utama: Dua Kolom di layar besar --}}
             <div class="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
-
-                {{-- Kolom Kiri: Daftar Item & Aksi --}}
                 <div class="lg:col-span-8">
-                    {{-- Pesan Session --}}
                     @if (session('success'))
                         <div class="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg relative mb-5 shadow-sm" role="alert">
                             <span class="block sm:inline">{{ session('success') }}</span>
@@ -41,103 +35,86 @@
                         </div>
                     @endif
 
-                    {{-- Baris Aksi Atas (Select All & Bulk Delete) --}}
                     <div class="mb-4 flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-                         <div class="flex items-center gap-3"> {{-- Increased gap --}}
-                             <input type="checkbox" id="select-all" class="form-checkbox h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                             <label for="select-all" class="text-gray-700 font-medium select-none cursor-pointer">Pilih Semua</label>
-                         </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="select-all" class="form-checkbox h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            <label for="select-all" class="text-gray-700 font-medium select-none cursor-pointer">Pilih Semua</label>
+                        </div>
 
-                         {{-- Tombol Bulk Delete (Awalnya hidden, dikontrol JS) --}}
-                         <form id="bulk-delete-form" action="{{ route('keranjang.bulkDestroy') }}" method="POST" class="hidden">
-                             @csrf
-                             @method('DELETE')
-                             <input type="hidden" name="selected_ids" id="selected-ids">
-                             <button type="submit" class="inline-flex items-center gap-1.5 text-sm bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-4 rounded-lg transition duration-200 ease-in-out" onclick="return confirm('Yakin ingin menghapus item yang dipilih?')">
-                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                 </svg>
-                                 Hapus (<span id="bulk-delete-count">0</span>) {{-- Opsional: Tampilkan jumlah item terpilih --}}
-                             </button>
-                         </form>
-                     </div>
+                        <form id="bulk-delete-form" action="{{ route('keranjang.bulkDestroy') }}" method="POST" class="hidden">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="selected_ids" id="selected-ids">
+                            <button type="submit" class="inline-flex items-center gap-1.5 text-sm bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-4 rounded-lg transition duration-200 ease-in-out" onclick="return confirm('Yakin ingin menghapus item yang dipilih?')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Hapus (<span id="bulk-delete-count">0</span>)
+                            </button>
+                        </form>
+                    </div>
 
-                    {{-- Daftar Item Keranjang --}}
                     <div class="space-y-4">
                         @php $totalKeseluruhan = 0; @endphp
                         @foreach ($keranjangs->items as $item)
                             @php
-                                // Sanitasi data sebelum digunakan
                                 $isValidProduct = !is_null($item->produk);
                                 $harga = $isValidProduct ? (int) preg_replace('/[^\d]/', '', $item->produk->harga) : 0;
                                 $qty = (int) $item->quantity;
                                 $subtotal = $harga * $qty;
-                                if ($isValidProduct) { $totalKeseluruhan += $subtotal; } // Hanya tambahkan jika produk valid
-                                $gambarUrl = $isValidProduct && $item->produk->gambar ? asset('storage/images/'. $item->produk->gambar) : asset('images/placeholder-ayam.png'); // Fallback image
+                                if ($isValidProduct) { $totalKeseluruhan += $subtotal; }
+                                $gambarUrl = $isValidProduct && $item->produk->gambar ? asset('storage/images/'. $item->produk->gambar) : asset('images/placeholder-ayam.png');
                                 $namaProduk = $isValidProduct ? $item->produk->nama_produk : 'Produk Tidak Ditemukan';
-                                $deskripsiProduk = $isValidProduct ? Str::limit($item->produk->deskripsi, 50) : 'Deskripsi Tidak Tersedia'; // Limit description length
+                                $deskripsiProduk = $isValidProduct ? Str::limit($item->produk->deskripsi, 50) : 'Deskripsi Tidak Tersedia';
                             @endphp
 
-                            {{-- Item Card Container --}}
                             <div class="item-card bg-white shadow-sm rounded-lg p-4 border border-gray-200 flex flex-col sm:flex-row items-center gap-4 transition duration-300 ease-in-out hover:shadow-md relative {{ !$isValidProduct ? 'opacity-70 bg-gray-50 border-red-200' : '' }}">
-                                {{-- Checkbox --}}
                                 <div class="flex-shrink-0 self-start sm:self-center">
                                     <input type="checkbox" name="selected_items[]" value="{{ $item->produk_id }}" class="item-checkbox form-checkbox h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" data-item-id="{{ $item->id }}" {{ !$isValidProduct ? 'disabled' : '' }}>
                                 </div>
 
-                                {{-- Gambar Produk --}}
                                 <div class="flex-shrink-0">
                                     <img src="{{ $gambarUrl }}" alt="{{ $namaProduk }}" class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-md border border-gray-100">
                                 </div>
 
-                                {{-- Info Produk & Quantity --}}
                                 <div class="flex-grow text-center sm:text-left w-full sm:w-auto">
                                     <h2 class="text-base sm:text-lg font-semibold text-gray-800 hover:text-indigo-600 transition duration-200">{{ $namaProduk }}</h2>
                                     <p class="text-xs sm:text-sm text-gray-500 mt-1">{{ $deskripsiProduk }}</p>
                                     <p class="text-sm sm:text-md font-medium text-indigo-600 mt-2">Harga: Rp {{ number_format($harga, 0, ',', '.') }}</p>
 
-                                     {{-- Kontrol Quantity (Hanya jika produk valid) --}}
-                                     @if ($isValidProduct)
-                                     <div class="mt-3 flex items-center justify-center sm:justify-start space-x-1">
-                                         {{-- Tombol Decrement --}}
-                                         <button type="button"
-                                                 class="decrement-quantity p-1.5 border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                 data-id="{{ $item->id }}"
-                                                 {{-- Disable diatur oleh JS --}} >
-                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
-                                         </button>
+                                    @if ($isValidProduct)
+                                    <div class="mt-3 flex items-center justify-center sm:justify-start space-x-1">
+                                        <button type="button"
+                                                class="decrement-quantity p-1.5 border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                data-id="{{ $item->id }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+                                        </button>
 
-                                         {{-- Display Quantity --}}
-                                         <span class="item-quantity-display inline-block w-10 text-center text-sm font-medium border-y border-gray-300 data-stok py-1.5"
-                                               data-id="{{ $item->id }}"
-                                               data-harga="{{ $harga }}"
-                                               data-stok="{{ $item->produk->stok ?? 0 }}">
-                                             {{ $item->quantity }}
-                                         </span>
+                                        <span class="item-quantity-display inline-block w-10 text-center text-sm font-medium border-y border-gray-300 data-stok py-1.5"
+                                              data-id="{{ $item->id }}"
+                                              data-harga="{{ $harga }}"
+                                              data-stok="{{ $item->produk->stok ?? 0 }}">
+                                            {{ $item->quantity }}
+                                        </span>
 
-                                         {{-- Tombol Increment --}}
-                                         <button type="button"
-                                                 class="increment-quantity p-1.5 border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-indigo-300"
-                                                 data-id="{{ $item->id }}">
-                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                             
-                                         </button>
-                                     </div>
-                                     @else
-                                        {{-- Pesan jika produk tidak valid --}}
+                                        <button type="button"
+                                                class="increment-quantity p-1.5 border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                                                data-id="{{ $item->id }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        </button>
+                                    </div>
+                                    @else
                                         <p class="mt-3 text-sm text-red-600 font-medium">Produk tidak tersedia</p>
-                                     @endif
+                                    @endif
                                 </div>
 
-                                {{-- Subtotal & Hapus --}}
                                 <div class="flex-shrink-0 text-center sm:text-right mt-3 sm:mt-0 ml-auto">
-                                     @if ($isValidProduct)
+                                    @if ($isValidProduct)
                                         <p class="text-base sm:text-lg font-semibold text-gray-900 subtotal mb-3" id="subtotal-{{ $item->id }}">
                                             Rp {{ number_format($subtotal, 0, ',', '.') }}
                                         </p>
-                                     @endif
-                                     {{-- Tombol Hapus (selalu tampil, action berbeda jika produk tidak valid) --}}
-                                     <form action="{{ route('keranjang.destroy', ['product_id' => $item->produk_id]) }}" method="POST" class="inline-block">
+                                    @endif
+                                    <form action="{{ route('keranjang.destroy', ['product_id' => $item->produk_id]) }}" method="POST" class="inline-block">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-md transition duration-200 ease-in-out focus:outline-none focus:ring-1 focus:ring-red-300" title="Hapus item" onclick="return confirm('Yakin ingin menghapus item ini dari keranjang?')">
@@ -148,65 +125,45 @@
                                     </form>
                                 </div>
 
-                                {{-- Pesan Alert Jika Produk Tidak Valid (bisa ditaruh di bawah item card jika prefer) --}}
                                 @if (!$isValidProduct)
-                                   <div class="absolute inset-0 bg-gray-100 bg-opacity-50 flex items-center justify-center text-red-700 font-medium p-4 rounded-lg text-center">
+                                    <div class="absolute inset-0 bg-gray-100 bg-opacity-50 flex items-center justify-center text-red-700 font-medium p-4 rounded-lg text-center">
                                         Produk ini mungkin telah dihapus. <br> Harap hapus dari keranjang.
                                     </div>
                                 @endif
-                            </div> {{-- End Item Card --}}
+                            </div>
                         @endforeach
-                    </div> {{-- End Space-y --}}
-                </div> {{-- End Kolom Kiri --}}
+                    </div>
+                </div>
 
-                {{-- Kolom Kanan: Ringkasan Belanja (Sticky di layar besar) --}}
                 <div class="lg:col-span-4 mt-8 lg:mt-0">
                     <div class="bg-white shadow-md rounded-lg border border-gray-200 p-6 lg:sticky lg:top-8">
                         <h2 class="text-xl font-semibold text-gray-800 mb-5 border-b pb-3">Ringkasan Belanja</h2>
 
-                        {{-- Rincian Total (Contoh jika ada biaya lain) --}}
-                        {{-- <div class="space-y-2 mb-4 text-gray-600">
-                            <div class="flex justify-between">
-                                <span>Subtotal Produk</span>
-                                <span id="subtotal-produk">Rp ...</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Biaya Pengiriman</span>
-                                <span>Rp ...</span>
-                            </div>
-                        </div> --}}
-
-                        {{-- Total Keseluruhan --}}
                         <div class="flex justify-between items-center border-t border-gray-200 pt-4 mb-6">
                             <span class="text-lg font-medium text-gray-900">Total</span>
-                            {{-- Pastikan ID ini cocok dengan JS --}}
                             <span id="total-keseluruhan" class="text-2xl font-bold text-indigo-700">
                                 Rp {{ number_format($totalKeseluruhan, 0, ',', '.') }}
                             </span>
                         </div>
 
-                        {{-- Tombol Checkout --}}
-                        <form method="POST" id="checkout-form"> {{-- ID harus sama dengan JS --}}
+                        <form method="POST" id="checkout-form">
                             @csrf
-                            {{-- Input hidden 'selected_ids' tidak digunakan oleh JS checkout ini, bisa dihapus --}}
                             <button type="submit"
                                     class="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    {{-- Disable jika tidak ada item valid terpilih? (Bisa ditambahkan di JS) --}}
-                                    id="checkout-button" >
+                                    id="checkout-button">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                 </svg>
                                 Lanjut ke Checkout
                             </button>
                         </form>
                     </div>
-                </div> {{-- End Kolom Kanan --}}
-
-            </div> {{-- End Grid Layout --}}
+                </div>
+            </div>
         @endif
-    </div> {{-- End Container --}}
+    </div>
 
-    {{-- TAG SCRIPT TETAP SAMA --}}
+    
     <script>
      document.addEventListener("DOMContentLoaded", function () {
     const selectAllCheckbox = document.getElementById("select-all");
@@ -249,7 +206,6 @@
             decrementButton.disabled = (newQuantity <= 1);
         }
         if (incrementButton) {
-            // Nonaktifkan tombol increment jika kuantitas mencapai atau melebihi stok
             incrementButton.disabled = (newQuantity >= maxStock);
         }
     }
@@ -308,7 +264,7 @@
                 if (!response.ok) {
                     return response.json().then(err => {
                         console.error("Backend error data:", err);
-                        // Kembalikan quantity jika backend error (opsional tapi disarankan)
+                        // KEMBALIIN QUANTITY KALO ERORR
                         const { quantity: originalQuantity } = getQuantityInfo(itemId); // Get current (failed) qty
                         setDisplayedQuantity(itemId, originalQuantity - (newQuantity > originalQuantity ? 1 : -1) ); // Revert
                         updateSubtotal(itemId);
@@ -323,21 +279,18 @@
             .then((data) => {
                 if (data.success) {
                     console.log(`Quantity item ${itemId} berhasil diupdate di backend.`);
-                     // Jika backend mengembalikan stok terbaru (optional)
                      if (typeof data.new_stock !== 'undefined') {
                         const { displaySpan } = getQuantityInfo(itemId);
                         if(displaySpan) {
                             displaySpan.dataset.stok = data.new_stock;
-                            // Update tombol disable lagi berdasarkan stok baru
                             setDisplayedQuantity(itemId, newQuantity);
                         }
                     }
                 } else {
                     console.error(`Gagal update quantity di backend untuk item ${itemId}:`, data.error);
                     alert(data.error || 'Gagal memperbarui kuantitas item.');
-                    // Kembalikan quantity di frontend jika backend menolak tapi status 200 OK
                     const { quantity: currentDisplayQty } = getQuantityInfo(itemId);
-                    if (currentDisplayQty !== data.corrected_quantity) { // Misal backend kirim qty yg benar
+                    if (currentDisplayQty !== data.corrected_quantity) { 
                         setDisplayedQuantity(itemId, data.corrected_quantity || currentDisplayQty - (newQuantity > currentDisplayQty ? 1 : -1));
                         updateSubtotal(itemId);
                         updateTotal();
@@ -348,7 +301,7 @@
                 console.error(`Gagal update quantity (fetch error) untuk item ${itemId}:`, error);
                 alert(error.message || 'Terjadi kesalahan jaringan saat memperbarui kuantitas item.');
             });
-        }, 500); // Debounce time
+        }, 500); 
     }
 
     function updateBulkDeleteVisibility() {

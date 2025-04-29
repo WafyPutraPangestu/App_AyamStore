@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ChekAdmin;
+use App\Http\Middleware\ChekKurir;
 use App\Http\Middleware\ChekUser;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => ChekAdmin::class,
             'user' => ChekUser::class,
+            'kurir' => ChekKurir::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

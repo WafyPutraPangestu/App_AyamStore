@@ -16,7 +16,7 @@ class kurir extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function order()
+    public function orders()
     {
         return $this->hasMany(Order::class);
     }

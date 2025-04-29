@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\katalog;
 use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\KurirController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\PembayaranController;
@@ -52,6 +53,7 @@ Route::middleware('admin')->group(function () {
 Route::middleware('user')->group(function () {
     Route::controller(DashboardController::class)->prefix('user')->name('user.')->group(function () {
         Route::get('dashboard', 'dashboardUser')->name('dashboard');
+        Route::get('profile', 'profileView')->name('profile');
     });
     // Route::controller(OrderController::class)->prefix('user')->name('user.')->group(function () {
     //     Route::get('order', 'orderView')->name('order');
@@ -99,4 +101,22 @@ Route::middleware('user')->group(function () {
 
     // Rute untuk halaman sukses setelah pembayaran
     // Route::get('/user/success', [PembayaranController::class, 'successView'])->name('user.success');
+});
+
+// ROUTE UNTUK KURIR
+Route::middleware('kurir')->group(function () {
+    Route::controller(KurirController::class)
+        ->prefix('kurir')
+        ->name('kurir.')
+        ->group(function () {
+            Route::get('profile',        'profileKurir')->name('profile');
+            Route::put('profile',        'updateProfile')->name('profile.update');
+            Route::get('tugas',          'tugasView')->name('tugas');
+            Route::post('ambil-tugas',  'ambilTugas')->name('ambil-tugas');
+            Route::get('manajemen', 'manajemenTugasView')->name('manajemen');
+            Route::patch('manajemen/{order}', 'updateTugas')->name('manajemen-update');
+
+            // RIWAYAT
+            Route::get('riwayat', 'riwayatKurir')->name('riwayat');
+        });
 });

@@ -9,6 +9,7 @@
           @csrf
           <div class="space-y-4">
             <x-input name="name" label="" type="text" placeholder="Name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+            <x-input name="telepon" label="" type="number" placeholder="No Telephone" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
             <x-input name="email" label="" type="email" placeholder="Email" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
             <x-input name="password" label="" type="password" placeholder="Password" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
             <x-input name="password_confirmation" label="" type="password" placeholder="Password Confirmation" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />

@@ -1,16 +1,6 @@
 <x-layout>
-  <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-lg mb-6">
+  <div class=" p-6 rounded-lg mb-6">
     <h1 class="text-2xl sm:text-3xl font-semibold text-indigo-800 mb-6">Riwayat Pesanan Anda</h1>
-
-    <!-- Search Bar -->
-    <div class="mb-6">
-      <div class="relative">
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Cari berdasarkan Order ID, nama produk, atau status..." 
-          class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        >
         <div class="absolute left-4 top-3.5 text-gray-400">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -225,38 +215,5 @@
         icon.classList.remove('rotate-180');
       }
     }
-
-    // Search functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const searchInput = document.getElementById('searchInput');
-      const orderItems = document.querySelectorAll('.order-item');
-      const noResults = document.getElementById('noResults');
-      
-      searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        let resultsFound = false;
-        
-        orderItems.forEach(item => {
-          const orderId = item.getAttribute('data-order-id').toLowerCase();
-          const status = item.getAttribute('data-status').toLowerCase();
-          const items = item.getAttribute('data-items').toLowerCase();
-          
-          if (orderId.includes(searchTerm) || 
-              status.includes(searchTerm) || 
-              items.includes(searchTerm)) {
-            item.classList.remove('hidden');
-            resultsFound = true;
-          } else {
-            item.classList.add('hidden');
-          }
-        });
-        
-        if (resultsFound) {
-          noResults.classList.add('hidden');
-        } else {
-          noResults.classList.remove('hidden');
-        }
-      });
-    });
   </script>
 </x-layout>

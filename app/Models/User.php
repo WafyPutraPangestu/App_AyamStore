@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -55,9 +56,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Produk::class);
     }
-    public function kurir(): HasMany
+    public function kurir(): hasOne
     {
-        return $this->hasMany(Kurir::class);
+        // Menggunakan hasOne karena satu user hanya punya satu profil kurir
+        // Laravel akan mencari foreign key 'user_id' di tabel 'kurirs' secara default
+        return $this->hasOne(Kurir::class);
     }
     public function keranjangs(): HasMany
     {

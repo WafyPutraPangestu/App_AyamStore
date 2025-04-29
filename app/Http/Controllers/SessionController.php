@@ -23,6 +23,7 @@ class SessionController extends Controller
         // dd($request->all());
         $credentials = $request->validate([
             'name' => 'required|string|max:255',
+            'telepon' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
         ], [
@@ -32,6 +33,7 @@ class SessionController extends Controller
             'email.unique' => 'Email sudah terdaftar',
             'password.required' => 'Password harus diisi',
             'password.confirmed' => 'Konfirmasi password tidak sesuai',
+            'telepon' => 'no telepon harus diisi',
         ]);
 
         $credentials['password'] = bcrypt($credentials['password']);
@@ -69,6 +71,9 @@ class SessionController extends Controller
 
         if (Auth::user()->role === 'admin') {
             return redirect()->intended('/admin/input');
+        }
+        if (Auth::user()->role === 'kurir') {
+            return redirect()->intended('/kurir/tugas');
         }
 
         return redirect()->intended('/');

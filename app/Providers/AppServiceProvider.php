@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('user', function ($user) {
             return $user->role === 'user';
         });
+        Gate::define('kurir', function ($user) {
+            return $user->role === 'kurir';
+        });
 
         // Aktifkan logging query SQL hanya di environment lokal untuk debugging
         if ($this->app->environment('local')) {

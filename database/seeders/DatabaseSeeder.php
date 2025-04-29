@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $admin = User::create([
             'role' => 'admin',
+            'telepon' => '08764566788889',
             'name' => 'Admin Ayam',
             'email' => 'admin@gmail.com',
             'password' => 'test1234'
@@ -24,8 +25,16 @@ class DatabaseSeeder extends Seeder
 
         $user = User::create([
             'role' => 'user',
+            'telepon' => '085156411212',
             'name' => 'User Biasa',
             'email' => 'user@gmail.com',
+            'password' => 'test1234'
+        ]);
+        $kurir = User::create([
+            'role' => 'kurir',
+            'telepon' => '201972170720',
+            'name' => 'Kurir Ayam',
+            'email' => 'kurir@gmail.com',
             'password' => 'test1234'
         ]);
         $product1 = Produk::create([
