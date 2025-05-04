@@ -1,24 +1,84 @@
-{{-- resources/views/user/katalog.blade.php --}}
-<x-layout> {{-- Asumsikan Anda memiliki komponen layout bernama 'layout' --}}
-    <x-notifications /> {{-- Asumsikan Anda memiliki komponen notifikasi --}}
+<x-layout> 
+    <x-notifications /> 
     <div class="min-h-screen ">
-
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 class="text-3xl font-bold mb-8 text-center sm:text-left text-gray-800">Katalog Produk</h1>
-            {{-- Tambahkan Fitur Filter/Sortir di sini jika perlu --}}
-            {{-- Contoh:
-            <div class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <input type="text" placeholder="Cari produk..." class="border-gray-300 rounded-lg shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full sm:w-auto">
-                <select class="border-gray-300 rounded-lg shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full sm:w-auto">
-                    <option value="">Urutkan Berdasarkan</option>
-                    <option value="harga_asc">Harga Termurah</option>
-                    <option value="harga_desc">Harga Termahal</option>
-                    <option value="nama_asc">Nama A-Z</option>
-                    <option value="nama_desc">Nama Z-A</option>
-                </select>
+            <div x-data="{
+                searchTerm: '{{ old('search', request('search', '')) }}', // Ambil dari old input atau request, default string kosong
+                sortOption: '{{ old('sort', request('sort', '')) }}',     // Ambil dari old input atau request, default string kosong
+                init() {
+                    // Perhatikan perubahan searchTerm setelah debounce
+                    let firstRun = true; // Flag untuk mencegah trigger saat inisialisasi
+                    this.$watch('searchTerm', (newValue, oldValue) => {
+                        // Hanya trigger jika nilai benar-benar berubah dan bukan saat load awal
+                        if (!firstRun && newValue !== oldValue) {
+                            console.log('Search term changed via watch:', newValue);
+                            this.updateUrl();
+                        }
+                        firstRun = false; // Set flag setelah run pertama selesai
+                    });
+                     // Set flag firstRun ke false setelah inisialisasi selesai untuk watch searchTerm
+                     this.$nextTick(() => { firstRun = false; });
+                },
+                updateUrl() {
+                    // Tunggu sebentar agar model terupdate jika dipicu oleh enter/change
+                    this.$nextTick(() => {
+                        console.log('Updating URL with:', this.searchTerm, this.sortOption);
+                        let url = '{{ route('user.katalog') }}';
+                        const params = new URLSearchParams(); // Gunakan URLSearchParams untuk handling lebih mudah
+        
+                        const cleanSearchTerm = this.searchTerm.trim();
+                        const cleanSortOption = this.sortOption; // sortOption sudah bersih dari select
+        
+                        if (cleanSearchTerm !== '') {
+                            params.append('search', cleanSearchTerm);
+                        }
+                        if (cleanSortOption !== '') {
+                            params.append('sort', cleanSortOption);
+                        }
+        
+                        const queryString = params.toString();
+                        if (queryString) {
+                            url += '?' + queryString;
+                        }
+        
+                        console.log('Navigating to:', url);
+                        window.location.href = url; // Reload halaman dengan parameter baru
+                    });
+                }
+            }"
+            class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
+        >
+            {{-- Input Pencarian dengan Ikon --}}
+            <div class="relative w-full sm:w-auto">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+                <input
+                    type="text"
+                    placeholder="Cari produk..."
+                    x-model.debounce.500ms="searchTerm" {{-- Update model setelah 500ms tidak aktif --}}
+                    @keydown.enter.prevent="updateUrl" {{-- Trigger pencarian saat Enter ditekan --}}
+                    {{-- @input="console.log('Input event:', $event.target.value)" --}} {{-- Debugging --}}
+                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
             </div>
-             --}}
-
+        
+            {{-- Dropdown Urutkan --}}
+            <select
+                x-model="sortOption"
+                @change="updateUrl" {{-- Trigger update saat pilihan berubah --}}
+                class="border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 w-full sm:w-auto py-2 text-sm"
+            >
+                <option value="">Urutkan Berdasarkan</option>
+                <option value="harga_asc" >Harga Termurah</option> {{-- :selected dihapus, x-model menangani ini --}}
+                <option value="harga_desc">Harga Termahal</option>
+                <option value="nama_asc"  >Nama A-Z</option>
+                <option value="nama_desc" >Nama Z-A</option>
+            </select>
+        </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 @forelse ($katalog as $item)
                     <div
@@ -26,7 +86,7 @@
                         {{-- Hanya bisa diklik jika stok > 0 --}}
                         @if($item->stok > 0)
                             @click="$dispatch('open-modal', { product: {{ json_encode($item) }} })"
-                            class="group relative bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" {{-- Overflow hidden dipindah ke sini --}}
+                            class="group relative bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" 
                         @else
                             class="group relative bg-white rounded-2xl shadow-lg opacity-60 cursor-not-allowed overflow-hidden" {{-- Style untuk item habis + overflow --}}
                         @endif
@@ -59,10 +119,6 @@
                             >
                                 {{ $item->nama_produk }}
                             </h3>
-                             {{-- Opsional: Tampilkan Kategori --}}
-                            {{-- @if($item->kategori)
-                                <span class="inline-block bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full mb-2">{{ $item->kategori->nama }}</span>
-                            @endif --}}
                             <p class="text-base font-semibold text-indigo-600 mb-2">
                                 {{-- Pastikan $item->harga adalah number/string angka --}}
                                 Rp {{ number_format( (float) $item->harga, 0, ',', '.') }}
@@ -74,13 +130,6 @@
                                 <p class="text-sm text-red-600 font-medium">Stok Habis</p>
                             @endif
                         </div>
-
-                        {{-- Alternatif Overlay jika stok habis (tidak perlu jika sudah ada opacity dan cursor-not-allowed di atas) --}}
-                        {{-- @if($item->stok <= 0)
-                        <div class="absolute inset-0 bg-gray-300 bg-opacity-40 flex items-center justify-center rounded-2xl">
-                            <span class="text-gray-800 font-bold bg-white px-3 py-1 rounded shadow">Stok Habis</span>
-                        </div>
-                        @endif --}}
                     </div>
                 @empty
                     <p class="text-gray-500 col-span-full text-center py-12 text-lg">
@@ -91,13 +140,7 @@
                     </p>
                 @endforelse
             </div>
-
-            {{-- Pagination Links --}}
-            <div class="mt-10">
-                {{ $katalog->links() }} {{-- Pastikan style pagination Tailwind sudah di-publish/dikonfigurasi --}}
-            </div>
         </div>
-
         {{-- Modal Detail Produk & Add to Cart --}}
         <div
             x-data="{
@@ -244,8 +287,7 @@
                                                     aria-label="Tambah jumlah"
                                                 > + </button>
                                             </div>
-                                            {{-- Pesan error validasi quantity (jika diperlukan dari backend) --}}
-                                            {{-- @error('quantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror --}}
+                                            
                                         </div>
                                     </template>
 

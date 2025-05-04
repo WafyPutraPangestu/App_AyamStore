@@ -3,22 +3,51 @@
 namespace App\Http\Controllers;
 
 use App\Models\Keranjang;
-use App\Models\KeranjangsItem; // Pastikan namespace benar
+use App\Models\KeranjangsItem;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Tambahkan Log jika ingin debug
+use Illuminate\Support\Facades\Log;
 
 class katalog extends Controller
 {
-    public function katalogView()
+    public function katalogView(request $request)
     {
-        // Ambil produk yang stoknya lebih dari 0 atau semua produk (tergantung preferensi)
-        // Opsi 1: Hanya tampilkan produk yang ada stok
-        // $katalog = Produk::where('stok', '>', 0)->latest()->paginate(10);
+        $query = Produk::query();
 
-        // Opsi 2: Tampilkan semua produk (nanti di view diberi tanda habis)
-        $katalog = Produk::latest()->paginate(10);
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('nama_produk', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('deskripsi', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        if ($request->filled('sort')) {
+            $sortOption = $request->input('sort');
+            switch ($sortOption) {
+                case 'harga_asc':
+                    $query->orderBy('harga', 'asc');
+                    break;
+                case 'harga_desc':
+                    $query->orderBy('harga', 'desc');
+                    break;
+                case 'nama_asc':
+                    $query->orderBy('nama_produk', 'asc');
+                    break;
+                case 'nama_desc':
+                    $query->orderBy('nama_produk', 'desc');
+                    break;
+                default:
+                    $query->orderBy('created_at', 'desc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $katalog = $query->paginate(12);
+
+        $katalog->appends($request->only(['search', 'sort']));
 
         return view('user.katalog', compact('katalog'));
     }
@@ -31,12 +60,10 @@ class katalog extends Controller
             'action' => 'required|string'
         ]);
 
-        // Hanya proses jika action adalah 'add_to_cart'
         if ($request->action !== 'add_to_cart') {
             return redirect()->back()->with('error', 'Aksi tidak valid.');
         }
 
-        // Pastikan user sudah login
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Silahkan login terlebih dahulu.');
         }
@@ -45,24 +72,18 @@ class katalog extends Controller
         $produkId = $request->produk_id;
         $requestedQuantity = (int) $request->quantity;
 
-        // Ambil data produk untuk cek stok
         $produk = Produk::find($produkId);
 
-        // --- PENGECEKAN STOK ---
         if (!$produk) {
-            // Seharusnya tidak terjadi karena ada validasi exists:produks,id
             return redirect()->back()->with('error', 'Produk tidak ditemukan.');
         }
 
-        // Cek apakah stok produk 0
         if ($produk->stok <= 0) {
             return redirect()->back()->with('error', 'Stok produk ini sedang habis.');
         }
 
-        // Dapatkan atau buat keranjang user
         $keranjang = Keranjang::firstOrCreate(['user_id' => $userId]);
 
-        // Cari item yang sudah ada di keranjang
         $item = KeranjangsItem::where('keranjang_id', $keranjang->id)
             ->where('produk_id', $produkId)
             ->first();
@@ -70,7 +91,6 @@ class katalog extends Controller
         $currentQuantityInCart = $item ? $item->quantity : 0;
         $newTotalQuantity = $currentQuantityInCart + $requestedQuantity;
 
-        // Cek apakah total quantity yang diminta melebihi stok
         if ($newTotalQuantity > $produk->stok) {
             $availableToAdd = $produk->stok - $currentQuantityInCart;
             if ($availableToAdd <= 0) {
@@ -79,25 +99,17 @@ class katalog extends Controller
                 return redirect()->back()->with('error', "Stok produk tidak mencukupi. Anda hanya dapat menambahkan {$availableToAdd} item lagi.");
             }
         }
-        // --- AKHIR PENGECEKAN STOK ---
 
-
-        // Proses penambahan/update item
         if ($item) {
-            // Jika ada, update quantity-nya
             $item->update(['quantity' => $newTotalQuantity]);
             return redirect()->back()->with('success', 'Jumlah produk di keranjang diperbarui.');
         } else {
-            // Jika belum ada, buat item baru
             KeranjangsItem::create([
                 'keranjang_id' => $keranjang->id,
                 'produk_id' => $produkId,
-                'quantity' => $requestedQuantity // Gunakan requestedQuantity karena ini item baru
+                'quantity' => $requestedQuantity
             ]);
             return redirect()->back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
         }
-
-        // Fallback redirect (seharusnya tidak tercapai jika logika di atas benar)
-        // return redirect()->back(); Dihapus karena sudah ada redirect di dalam if/else
     }
 }

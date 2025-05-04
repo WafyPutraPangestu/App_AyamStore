@@ -99,7 +99,7 @@ class KurirController extends Controller
                 if ($order && is_null($order->kurir_id) && $order->status_pengiriman === 'mencari_kurir') {
                     $order->update([
                         'kurir_id'          => $kurir->id,
-                        'status_pengiriman' => 'sedang-dikemas', // status pengiriman
+                        'status_pengiriman' => 'menunggu_pickup', // status pengiriman
                     ]);
                     $assignedCount++;
                 } elseif ($order && $order->kurir_id) {

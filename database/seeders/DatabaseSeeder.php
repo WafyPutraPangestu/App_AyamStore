@@ -44,10 +44,10 @@ class DatabaseSeeder extends Seeder
             'deskripsi' => 'Ayam goreng yang enak dan crispy',
         ]);
         $product1 = Produk::create([
-            'nama_produk' => 'Ayam memek',
+            'nama_produk' => 'Ayam rebus',
             'harga' => 30000,
             'stok' => 200,
-            'deskripsi' => 'Ayam memek yang enak dan crispy',
+            'deskripsi' => 'Ayam rebus yang enak dan lembut',
         ]);
     }
 }

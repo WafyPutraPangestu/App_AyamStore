@@ -483,7 +483,7 @@
     </div>
   @endif
 @vite(['resources/js/style.js'])
-  {{-- <script>
+  <script>
     document.addEventListener('DOMContentLoaded', function () {
       const statusDropdowns = document.querySelectorAll('.status-dropdown');
       
@@ -610,5 +610,5 @@
         }, 3000);
       }
     });
-  </script> --}}
+  </script>
 </x-layout>         

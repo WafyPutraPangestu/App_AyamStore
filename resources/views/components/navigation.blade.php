@@ -56,8 +56,8 @@
                 {{-- User Links --}}
                 @can('user')
                     <x-nav-link href="{{ route('user.katalog') }}" :active="request()->routeIs('user.katalog*')">Katalog</x-nav-link>
-                    <x-nav-link href="{{ route('user.riwayat') }}" :active="request()->routeIs('user.riwayat*')">Riwayat Transaksi</x-nav-link>
-                    <x-nav-link href="{{ route('user.dashboard') }}" :active="request()->routeIs('user.dashboard*')">Akun</x-nav-link>
+                    <x-nav-link href="{{ route('user.riwayat') }}" :active="request()->routeIs('user.riwayat*')">Riwayat Pembelian</x-nav-link>
+                    <x-nav-link href="{{ route('user.pengiriman') }}" :active="request()->routeIs('user.pengiriman*')">Tracking Pengiriman</x-nav-link>
                 @endcan
             </div>
 
@@ -104,7 +104,8 @@
                 @auth
                      <x-form method="POST" action="{{ route('auth.logout') }}">
                         @csrf
-                        <button type="submit" title="Logout" class="p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors duration-200">
+                        <button type="submit" title="Logout" class="p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors duration-200 cursor-pointer">
+                            {{-- Icon Logout --}}
                             <span class="sr-only">Logout</span>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />

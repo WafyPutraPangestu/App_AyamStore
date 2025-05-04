@@ -7,6 +7,7 @@ use App\Http\Controllers\KurirController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\PengirimanController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,10 @@ Route::middleware('user')->group(function () {
         Route::get('riwayat', 'riwayat')->name('riwayat');
     });
     Route::delete('/user/delete/{order}', [OrderController::class, 'cancelOrder'])->name('user.delete');
+
+    Route::controller(PengirimanController::class)->prefix('user')->name('user.')->group(function () {
+        Route::get('pengiriman', 'pengirimanView')->name('pengiriman');
+    });
 
 
 
