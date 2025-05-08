@@ -223,34 +223,34 @@
       <iconify-icon icon="heroicons-outline:clipboard-list" class="inline-block mr-2 w-8 h-8"></iconify-icon>
       Pesanan Tersedia
     </h1>
-
+    
     @if(session('error'))
-      <div class="alert mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md animate__animated animate__fadeIn">
-        <div class="flex items-center">
-          <iconify-icon icon="heroicons-outline:exclamation-circle" class="w-6 h-6 mr-3 text-red-500"></iconify-icon>
-          <p>{{ session('error') }}</p>
-        </div>
+    <div class="alert mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md animate__animated animate__fadeIn">
+      <div class="flex items-center">
+        <iconify-icon icon="heroicons-outline:exclamation-circle" class="w-6 h-6 mr-3 text-red-500"></iconify-icon>
+        <p>{{ session('error') }}</p>
       </div>
+    </div>
     @endif
-
+    
     @if(session('success'))
-      <div class="alert mb-6 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md animate__animated animate__fadeIn">
-        <div class="flex items-center">
-          <iconify-icon icon="heroicons-outline:check-circle" class="w-6 h-6 mr-3 text-green-500"></iconify-icon>
-          <p>{{ session('success') }}</p>
-        </div>
+    <div class="alert mb-6 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md animate__animated animate__fadeIn">
+      <div class="flex items-center">
+        <iconify-icon icon="heroicons-outline:check-circle" class="w-6 h-6 mr-3 text-green-500"></iconify-icon>
+        <p>{{ session('success') }}</p>
       </div>
+    </div>
     @endif
-
+    
     <form id="orders-form" action="{{ route('kurir.ambil-tugas') }}" method="POST" class="space-y-6">
       @csrf
-
+      
       @forelse($availableOrders as $order)
-        <div class="order-card mb-6">
-          <div class="order-card-inner bg-white rounded-2xl p-6">
-            <div class="order-header flex items-center mb-4 pb-3 border-b border-gray-100">
-              <input
-                type="checkbox"
+      <div class="order-card mb-6">
+        <div class="order-card-inner bg-white rounded-2xl p-6">
+          <div class="order-header flex items-center mb-4 pb-3 border-b border-gray-100">
+            <input
+            type="checkbox"
                 name="selected_orders[]"
                 value="{{ $order->id }}"
                 id="order-{{ $order->id }}"

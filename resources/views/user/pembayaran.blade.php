@@ -19,17 +19,6 @@
                   </div>
                   
                   <pre id="result-json" class="mt-4 bg-gray-100 p-4 rounded-lg text-sm text-gray-700 overflow-x-auto hidden"></pre>
-                  
-                  <div class="border-t border-gray-200 pt-6 mt-6">
-                      <div class="flex justify-center">
-                          <a href="{{ route('user.katalog') }}" class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center">
-                              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                              </svg>
-                              Kembali ke Katalog
-                          </a>
-                      </div>
-                  </div>
               @else
                   <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
                       <div class="flex">

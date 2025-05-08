@@ -24,11 +24,11 @@ return new class extends Migration
             $table->decimal('total', 12, 2);
             $table->enum('status', ['pending', 'selesai', 'gagal'])->default('pending');
             $table->enum('status_pengiriman', [
-                'mencari_kurir',      // Baru dibuat, belum ada kurir
-                'menunggu_pickup',    // Kurir sudah ditugaskan, menunggu barang diambil
-                'sedang_diantar',     // Barang sedang dalam perjalanan
-                'terkirim',           // Barang sudah sampai tujuan
-                'gagal_kirim'         // Pengiriman gagal (alasan bisa dicatat di tempat lain)
+                'mencari_kurir',
+                'menunggu_pickup',
+                'sedang_diantar',
+                'terkirim',
+                'gagal_kirim'
             ])
                 ->default('mencari_kurir');
             $table->timestamps();

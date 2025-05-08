@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/KurirController.php
 
 namespace App\Http\Controllers;
 
@@ -99,7 +98,7 @@ class KurirController extends Controller
                 if ($order && is_null($order->kurir_id) && $order->status_pengiriman === 'mencari_kurir') {
                     $order->update([
                         'kurir_id'          => $kurir->id,
-                        'status_pengiriman' => 'menunggu_pickup', // status pengiriman
+                        'status_pengiriman' => 'menunggu_pickup',
                     ]);
                     $assignedCount++;
                 } elseif ($order && $order->kurir_id) {
@@ -111,6 +110,8 @@ class KurirController extends Controller
                 $kurir->update(['status' => 'sedang_mengantar']);
             }
 
+
+
             DB::commit();
 
             $msg = "$assignedCount pesanan berhasil diambil.";
@@ -121,9 +122,10 @@ class KurirController extends Controller
             return redirect()->route('kurir.tugas')->with('success', $msg);
         } catch (\Throwable $e) {
             DB::rollBack();
-            throw $e; // biar debug-nya kelihatan
+            throw $e;
         }
     }
+
     public function manajemenTugasView()
     {
         $user = Auth::user();
@@ -135,7 +137,6 @@ class KurirController extends Controller
         return view('kurir.manajemen', compact('orders'));
     }
 
-
     public function updateTugas(Request $request, Order $order)
     {
         $request->validate([
@@ -144,6 +145,19 @@ class KurirController extends Controller
 
         $order->status_pengiriman = $request->input('status_pengiriman');
         $order->save();
+
+        // Cek apakah status baru adalah 'terkirim'
+        if ($order->status_pengiriman === 'terkirim') {
+            // Cek apakah masih ada order aktif (belum terkirim) untuk kurir ini
+            $activeOrders = Order::where('kurir_id', $order->kurir_id)
+                ->whereNotIn('status_pengiriman', ['terkirim', 'gagal_kirim']) // hanya yang masih dalam proses
+                ->count();
+
+            // Jika tidak ada order aktif, ubah status kurir menjadi tersedia
+            if ($activeOrders === 0 && $order->kurir) {
+                $order->kurir->update(['status' => 'tersedia']);
+            }
+        }
 
         return response()->json([
             'success' => true,

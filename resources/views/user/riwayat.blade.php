@@ -1,42 +1,15 @@
 <x-layout>
-  {{-- Tambahkan div pembungkus di sini --}}
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8"> 
-    {{-- ^^^^ Kelas ini menambahkan:
-        - container: Menetapkan max-width responsif (jika dikonfigurasi di tailwind.config.js)
-        - mx-auto: Memusatkan container
-        - px-4 sm:px-6 lg:px-8: Menambahkan padding horizontal (kiri & kanan) yang responsif
-        - py-8: Menambahkan padding vertikal (atas & bawah) agar ada jarak dari header/footer 
-    --}}
 
-    {{-- Konten Riwayat Anda yang sudah ada MULAI DARI SINI --}}
-    <div class="p-6 rounded-lg mb-6 bg-white shadow"> {{-- Opsional: tambahkan bg-white & shadow jika ingin card terpisah untuk judul --}}
-      <div class="flex justify-between items-center mb-4"> {{-- Atur layout judul dan search --}}
+    <div class="p-6 rounded-lg mb-6 bg-white shadow"> 
+      <div class="flex justify-between items-center mb-4"> 
         <h1 class="text-2xl sm:text-3xl font-semibold text-indigo-800">Riwayat Pembelian</h1>
-        {{-- Pindahkan input search ke sini agar lebih terstruktur --}}
-        {{-- <div class="relative w-full max-w-xs"> 
-          <input 
-            type="text" 
-            id="searchInput" 
-            placeholder="Cari Order ID, Status, Item..." 
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-          >
-          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div> --}}
-        {{-- Note: Kode search di atas hanya contoh, Anda perlu menyesuaikan dengan implementasi search Anda --}}
       </div>
-      {{-- Hapus div pembungkus search yang absolut --}}
-      {{-- <div class="absolute left-4 top-3.5 text-gray-400"> ... </div> --}}
     </div> 
 
-    {{-- Sisanya tetap sama --}}
     @if($riwayat->count() > 0)
       <div class="space-y-4" id="orderList">
         @foreach($riwayat as $pembayaran)
-          {{-- ... (Kode item pesanan Anda tidak berubah) ... --}}
             <div class="order-item bg-white rounded-lg shadow-md border-l-4 overflow-hidden transition-all duration-300 hover:shadow-lg" 
                  data-order-id="{{ $pembayaran->order->id }}"
                  data-status="{{ strtolower($pembayaran->status) }}"
@@ -84,7 +57,7 @@
                       @elseif(strtolower($pembayaran->status) == 'pending')
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
                       @elseif(strtolower($pembayaran->status) == 'failed' || strtolower($pembayaran->status) == 'expire')
-                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
                       @elseif(strtolower($pembayaran->status) == 'shipping')
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H13a1 1 0 001-1v-5h2a1 1 0 00.77-.37l3-3.86A1 1 0 0019 5h-1V4a1 1 0 00-1-1H3z"></path></svg>
                       @endif
@@ -154,7 +127,6 @@
                            Pembayaran Berhasil
                          </span>
                        @endif
-                      {{-- Tambahkan status lain jika perlu --}}
                      </div>
                      <div class="text-right">
                        <p class="text-sm text-gray-600">Total Pesanan:</p>
@@ -194,11 +166,9 @@
          </div>
        </div>
     @endif
-    {{-- Konten Riwayat Anda BERAKHIR DI SINI --}}
 
-  </div> {{-- Tutup div pembungkus --}}
+  </div> 
 
-  {{-- JavaScript Anda tetap sama --}}
   <script>
     function toggleDetails(orderId) {
       const details = document.getElementById(orderId);
@@ -212,7 +182,5 @@
         icon.classList.remove('rotate-180');
       }
     }
-
-   
   </script>
 </x-layout>

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('kurirs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->unique()->constrained()->nullOnDelete();
-            $table->string('kendaraan_info')->nullable(); // Info kendaraan (plat nomor, jenis)
-            $table->enum('status', ['tersedia', 'sedang_mengantar', 'tidak_aktif'])->default('tersedia'); // Status ketersediaan kurir
+            $table->string('kendaraan_info')->nullable();
+            $table->enum('status', ['tersedia', 'sedang_mengantar', 'tidak_aktif'])->default('tersedia');
             $table->timestamps();
         });
     }
