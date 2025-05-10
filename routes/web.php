@@ -88,6 +88,11 @@ Route::middleware('user')->group(function () {
     Route::controller(PengirimanController::class)->prefix('user')->name('user.')->group(function () {
         Route::get('pengiriman', 'pengirimanView')->name('pengiriman');
     });
+    Route::post('pengiriman/{orderId}/update', [PengirimanController::class, 'updateStatus'])->name('pengiriman.updateStatus');
+
+    Route::get('user/pengiriman/{order}/status', [PengirimanController::class, 'getStatus'])
+        ->name('user.pengiriman.getStatus');
+
 
 
 
