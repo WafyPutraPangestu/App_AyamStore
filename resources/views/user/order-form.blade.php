@@ -111,8 +111,7 @@
                 <form method="POST" action="{{ route('user.order-store') }}" class="w-full">
                     @csrf
                     <input type="hidden" name="order_id" value="{{ $order->id }}">
-                    <input type="hidden" name="total_harga" value="{{ $order->total_harga }}">
-
+                    <input type="hidden" name="total" value="{{ $order->total_harga + ($order->ongkir ?? 0) }}">
                     <!-- Shipping Address Section -->
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Alamat Pengiriman</h2>

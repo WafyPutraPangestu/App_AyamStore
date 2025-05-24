@@ -13,6 +13,12 @@ class ProdukController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function homeView()
+    {
+        $produk = Produk::latest()->take(5)->get();
+        return view("home", compact("produk"));
+    }
     public function inputView()
     {
         return view("admin.input");

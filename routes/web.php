@@ -6,15 +6,14 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KurirController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
+use App\Http\Controllers\panelController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PengirimanController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [ProdukController::class, 'homeView'])->name('home');
 
 // ROUTE UNTUK TAMU
 Route::middleware('guest')->group(function () {
@@ -33,6 +32,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('admin')->group(function () {
     Route::controller(DashboardController::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', 'adminDashboard')->name('dashboard');
+        Route::get('detailOrder', 'detailOrder')->name('detailOrder');
     });
     Route::controller(ProdukController::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('input', 'inputView')->name('input');
@@ -44,7 +44,10 @@ Route::middleware('admin')->group(function () {
     });
     // ROUTE UNTUK ORDER
     Route::controller(OrderController::class)->prefix('admin')->name('admin.')->group(function () {
-        Route::get('manajemen', 'index')->name('manajemen');
+        Route::get('detail', 'index')->name('manajemen');
+    });
+    Route::controller(panelController::class)->prefix('admin')->name('admin.')->group(function () {
+        route::get('panel', 'panelView')->name('panel');
     });
     // ROUTE UNTUK DETAIL ORDER
 

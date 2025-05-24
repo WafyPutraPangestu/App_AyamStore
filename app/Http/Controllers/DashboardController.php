@@ -22,6 +22,7 @@ class DashboardController extends Controller
         $totalPendapatan         = Order::where('status', 'selesai')->sum('total');
         $recentOrders            = Order::with('user')->latest()->take(5)->get();
 
+
         // Helper: bangun rentang tanggal untuk 7 dan 30 hari
         $buildRange = function (int $days) {
             $result = [];
@@ -117,5 +118,11 @@ class DashboardController extends Controller
     public function profileView()
     {
         return view('user.profile');
+    }
+
+    public function detailOrder()
+    {
+        $allOrders = Order::with('user')->latest()->simplePaginate(10);
+        return view('admin.orderDetail', compact('allOrders'));
     }
 }

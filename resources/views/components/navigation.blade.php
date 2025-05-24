@@ -55,6 +55,7 @@
                     <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard*')">Dashboard</x-nav-link>
                     <x-nav-link href="{{ route('admin.input') }}" :active="request()->routeIs('admin.input*')">Input Data Produk</x-nav-link>
                     <x-nav-link href="{{ route('admin.dataProduk') }}" :active="request()->routeIs('admin.dataProduk*')">Produk</x-nav-link>
+                    <x-nav-link href="{{ route('admin.panel') }}" :active="request()->routeIs('admin.panel*')">Panel Kurir</x-nav-link>
                 @endcan
 
                 @can('kurir')
@@ -255,5 +256,4 @@
     </div>
 </header>
 
-{{-- Pastikan untuk menambahkan Alpine.js di bagian bawah body --}}
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

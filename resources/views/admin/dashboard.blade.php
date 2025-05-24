@@ -101,7 +101,7 @@
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
         <h2 class="text-xl font-semibold">Pesanan Terbaru</h2>
-        <a href="{{ route('admin.dataProduk') ?? '#' }}" class="text-blue-500 hover:text-blue-700 text-sm">
+        <a href="{{ route('admin.detailOrder')}}" class="text-blue-500 hover:text-blue-700 text-sm">
           Lihat Semua
         </a>
       </div>

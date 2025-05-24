@@ -22,20 +22,30 @@ class PembayaranController extends Controller
 
     public function mockCheckout(Request $request)
     {
-        // Validasi input
         $request->validate([
             'order_id' => 'required|exists:orders,id',
-            'total_harga' => 'required|numeric|min:1',
-            'alamat_pengiriman' => 'required|string' // Validasi input alamat
+            'total' => 'required|numeric',
+            'alamat_pengiriman' => 'required|string',
         ]);
 
         $orderId = $request->order_id;
 
-        // Update alamat pengiriman di tabel orders
-        $order = Order::find($orderId);
+        $order = Order::with(['items.produk'])->find($orderId);
         if ($order) {
             $order->alamat_pengiriman = $request->alamat_pengiriman;
             $order->save();
+        }
+
+        $items = [];
+        Log::info('Order items:', $order->items->toArray());
+
+        foreach ($order->items as $item) {
+            $items[] = [
+                'id'       => $item->produk->id,
+                'price'    => $item->produk->harga,
+                'quantity' => $item->quantity,
+                'name'     => $item->produk->nama_produk,
+            ];
         }
 
         $MidtransId = 'ORDER-' . time() . '-' . rand(1000, 9999);
@@ -45,41 +55,39 @@ class PembayaranController extends Controller
             'status' => 'pending',
         ]);
 
-        // KONFIGURASI MIDTRANS
         \Midtrans\Config::$serverKey = config('midtrans.server_key');
         \Midtrans\Config::$isProduction = false;
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
+        $total = $order->ongkir + ($order->total_harga ?? 0);
         $params = [
             'transaction_details' => [
                 'order_id' => $MidtransId,
-                'gross_amount' => $request->total_harga,
+                'gross_amount' => $total,
             ],
             'customer_details' => [
                 'first_name' => Auth::user()->name,
                 'email' => Auth::user()->email,
                 'shipping_address' => [
-                    'address' => $request->alamat_pengiriman // Tambahkan alamat ke Midtrans juga
-                ]
+                    'address' => $request->alamat_pengiriman
+                ],
             ],
+            'item_details' => $items,
         ];
-
-        // Log::info("Parameter Midtrans: " . json_encode($params)); // Baris ini sempat ada di log, bisa diaktifkan lagi untuk debugging
+        Log::info("Parameter Midtrans: " . json_encode($params));
 
         try {
             $snapToken = \Midtrans\Snap::getSnapToken($params);
         } catch (\Exception $e) {
-            Log::error("Midtrans SnapToken Error: " . $e->getMessage(), ['exception' => $e]); // Log full exception
+            Log::error("Midtrans SnapToken Error: " . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.');
         }
 
-
         if (!$snapToken) {
-            Log::error("Snap token tidak diterima dari Midtrans. Response kemungkinan kosong."); // Log lebih spesifik
+            Log::error("Snap token tidak diterima dari Midtrans. Response kemungkinan kosong.");
             return redirect()->back()->with('error', 'Token pembayaran tidak tersedia.');
         }
-
 
         $transaction->snap_token = $snapToken;
         $transaction->save();
@@ -97,96 +105,55 @@ class PembayaranController extends Controller
 
     public function success(Pembayaran $pembayaran)
     {
-        DB::beginTransaction(); // Mulai transaksi database
+        DB::beginTransaction();
 
         try {
-            Log::info("--> METHOD SUCCESS DIPANGGIL UNTUK PEMBAYARAN ID: " . $pembayaran->id);
-
-            // 1. Cek apakah pembayaran sudah berhasil sebelumnya
             if ($pembayaran->status === 'berhasil') {
-                Log::info("--> PEMBAYARAN SUDAH BERHASIL SEBELUMNYA.");
-                // Tidak perlu rollback karena tidak ada perubahan database yang dilakukan di sini
                 return view('user.success', compact('pembayaran'))->with('info', 'Pembayaran sudah dikonfirmasi sebelumnya.');
             }
 
-            // 2. Update status Pembayaran menjadi 'berhasil'
             $pembayaran->status = 'berhasil';
             $pembayaran->save();
-            Log::info("--> STATUS PEMBAYARAN ID {$pembayaran->id} DIUPDATE MENJADI 'berhasil'");
 
-            // 3. Load relasi order beserta item dan produknya
-            // Eager load untuk efisiensi
             $pembayaran->load('order.items.produk');
-            $order = $pembayaran->order; // Ambil objek Order dari relasi
-            Log::info("--> MENGAMBIL ORDER UNTUK PEMBAYARAN. ORDER ID: " . ($order ? $order->id : 'null'));
+            $order = $pembayaran->order;
 
-            // Pastikan order ditemukan
             if ($order) {
-                // 4. Kurangi stok produk berdasarkan item di order
                 if ($order->items && $order->items->count() > 0) {
-                    Log::info("--> ORDER DITEMUKAN DAN MEMILIKI ITEM. JUMLAH ITEM: " . $order->items->count());
                     foreach ($order->items as $item) {
-                        Log::info("--> MEMPROSES ORDER ITEM ID: {$item->id}, PRODUK ID: {$item->produk_id}, QTY: {$item->quantity}");
-                        $produk = $item->produk; // Ambil objek Produk dari relasi item
-                        Log::info("--> PRODUK DITEMUKAN? " . ($produk ? 'YA (ID: ' . ($produk->id ?? 'N/A') . ')' : 'TIDAK'));
+                        $produk = $item->produk;
 
-                        // Pastikan produk ada dan memiliki kolom stok
-                        // Ganti 'stok' jika nama kolom di tabel produk Anda berbeda
                         $stockColumnName = 'stok';
                         if ($produk && array_key_exists($stockColumnName, $produk->getAttributes())) {
                             $currentStock = (int) $produk->getAttribute($stockColumnName);
-                            Log::info("--> STOK SEBELUM UPDATE: {$currentStock}. QTY DIBELI: {$item->quantity}");
                             $newStock = $currentStock - $item->quantity;
 
-                            // Pencegahan stok negatif (opsional, sesuai logika bisnis)
                             if ($newStock < 0) {
-                                Log::warning("--> STOK AKAN MENJADI NEGATIF UNTUK PRODUK ID {$produk->id}. DISET MENJADI 0.");
-                                $newStock = 0; // Atau lemparkan error jika stok tidak boleh negatif
-                                // throw new \Exception("Stok tidak mencukupi untuk produk ID: {$produk->id}");
+                                $newStock = 0;
                             }
 
                             $produk->setAttribute($stockColumnName, $newStock);
-                            $produk->save(); // Simpan perubahan stok produk
-                            Log::info("--> STOK PRODUK ID {$produk->id} SETELAH UPDATE: {$produk->{$stockColumnName}}");
+                            $produk->save();
                         } else {
-                            // Handle jika produk tidak ditemukan atau tidak punya kolom stok
                             if (!$produk) {
-                                Log::error("--> ERROR: PRODUK TIDAK DITEMUKAN UNTUK ORDER ITEM ID {$item->id}. PRODUK ID {$item->produk_id}");
-                                throw new \Exception("Produk dengan ID {$item->produk_id} tidak ditemukan."); // Batalkan transaksi
+                                throw new \Exception("Produk dengan ID {$item->produk_id} tidak ditemukan.");
                             } else {
-                                Log::error("--> ERROR: ATRIBUT '{$stockColumnName}' TIDAK DITEMUKAN PADA PRODUK ID {$produk->id}");
-                                throw new \Exception("Kolom stok '{$stockColumnName}' tidak ditemukan untuk produk ID: {$produk->id}"); // Batalkan transaksi
+                                throw new \Exception("Kolom stok '{$stockColumnName}' tidak ditemukan untuk produk ID: {$produk->id}");
                             }
                         }
                     }
-                    Log::info("--> SELESAI MEMPROSES SEMUA ITEM. STOK BERHASIL DIKURANGI UNTUK ORDER ID {$order->id}.");
-                } else {
-                    Log::warning("--> ORDER ID {$order->id} TIDAK MEMILIKI ITEM.");
-                    // Pertimbangkan apakah ini error atau tidak. Jika order harus punya item, lemparkan exception.
-                    // throw new \Exception("Order ID {$order->id} tidak memiliki item.");
                 }
 
-                // 5. <<< TAMBAHAN: Update status Order menjadi 'selesai' >>>
-                // Pastikan model Order Anda memiliki kolom 'status' atau sesuaikan nama kolomnya
-                Log::info("--> MENGUPDATE STATUS ORDER ID {$order->id} MENJADI 'selesai'");
-                $order->status = 'selesai'; // Ganti 'selesai' jika Anda menggunakan nilai status lain
-                $order->save(); // Simpan perubahan status order
-                Log::info("--> STATUS ORDER ID {$order->id} BERHASIL DIUPDATE MENJADI 'selesai'");
+                $order->status = 'selesai';
+                $order->save();
             } else {
-                // Handle jika order tidak ditemukan terkait pembayaran ini
-                Log::error("--> CRITICAL ERROR: ORDER TIDAK DITEMUKAN UNTUK PEMBAYARAN ID {$pembayaran->id}.");
-                // Jika Pembayaran harus selalu punya Order, ini adalah error serius.
-                throw new \Exception("Order tidak ditemukan untuk Pembayaran ID: {$pembayaran->id}"); // Batalkan transaksi
+                throw new \Exception("Order tidak ditemukan untuk Pembayaran ID: {$pembayaran->id}");
             }
 
-            // 6. Commit transaksi jika semua operasi berhasil
             DB::commit();
-            Log::info("--> TRANSAKSI DATABASE BERHASIL DI-COMMIT. PEMBAYARAN ID {$pembayaran->id}");
 
-            // 7. Tampilkan view sukses
             return view('user.success', compact('pembayaran'));
         } catch (\Exception $e) {
-            // 8. Rollback transaksi jika terjadi error di manapun dalam blok try
             DB::rollBack();
             Log::error('--> FATAL ERROR DALAM PROSES SUCCESS PEMBAYARAN. TRANSAKSI DIBATALKAN: ' . $e->getMessage(), [
                 'pembayaran_id' => $pembayaran->id ?? null,
@@ -194,11 +161,8 @@ class PembayaranController extends Controller
                 'exception_class' => get_class($e),
                 'exception_file' => $e->getFile(),
                 'exception_line' => $e->getLine(),
-                // 'trace' => $e->getTraceAsString(), // Aktifkan jika butuh trace lengkap
             ]);
 
-            // Tampilkan view sukses tapi dengan pesan error
-            // Pesan error sebaiknya lebih umum untuk user, detail ada di log
             return view('user.success', compact('pembayaran'))->with('error', 'Terjadi kesalahan saat memproses pesanan Anda setelah pembayaran berhasil. Silakan hubungi administrator.');
         }
     }
@@ -207,53 +171,32 @@ class PembayaranController extends Controller
     {
         Log::info("--> METHOD PENDING DIPANGGIL UNTUK PEMBAYARAN ID: " . $pembayaran->id);
 
-        // Tidak perlu mengubah status pembayaran di sini, karena sudah 'pending'
-        // atau status dari Midtrans (misal 'pending' untuk VA) sudah tercatat jika pakai Notifikasi.
-        // Cukup tampilkan view informasi pending.
-
-        // Anda bisa memuat relasi order jika perlu menampilkan detailnya di view pending
         $pembayaran->load('order.items.produk');
 
         return view('user.pending', compact('pembayaran'));
     }
 
-    /**
-     * Menampilkan halaman ketika status pembayaran gagal atau dibatalkan.
-     *
-     * @param Pembayaran $pembayaran
-     * @param Request $request // Tambahkan Request untuk cek parameter 'reason'
-     * @return \Illuminate\View\View
-     */
     public function failed(Pembayaran $pembayaran, Request $request)
     {
         Log::warning("--> METHOD FAILED DIPANGGIL UNTUK PEMBAYARAN ID: " . $pembayaran->id);
 
-        // 1. Update status Pembayaran menjadi 'gagal' (atau 'error', 'cancelled')
-        // Hanya update jika statusnya bukan 'berhasil'
         if ($pembayaran->status !== 'berhasil') {
-            $pembayaran->status = 'gagal'; // Atau status lain yang sesuai
+            $pembayaran->status = 'gagal';
             $pembayaran->save();
-            Log::info("--> STATUS PEMBAYARAN ID {$pembayaran->id} DIUPDATE MENJADI 'gagal'");
         } else {
             Log::info("--> PEMBAYARAN ID {$pembayaran->id} SUDAH 'berhasil', tidak diubah ke 'gagal'.");
         }
 
-        // 2. Tidak perlu mengurangi stok atau mengubah status order di sini.
-
-        // Ambil alasan dari query string (jika ada, dari onClose callback)
         $reason = $request->query('reason');
         $errorMessage = 'Pembayaran Anda gagal atau dibatalkan.';
         if ($reason === 'closed') {
             $errorMessage = 'Anda menutup jendela pembayaran sebelum transaksi selesai.';
         }
 
-        // Anda bisa memuat relasi order jika perlu menampilkan detailnya di view failed
         $pembayaran->load('order.items.produk');
 
-        // Tampilkan view gagal dengan pesan error
         return view('user.failed', compact('pembayaran', 'errorMessage'));
     }
-
 
     public function successView()
     {

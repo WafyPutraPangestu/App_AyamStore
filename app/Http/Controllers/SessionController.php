@@ -70,10 +70,13 @@ class SessionController extends Controller
         $request->session()->regenerate();
 
         if (Auth::user()->role === 'admin') {
-            return redirect()->intended('/admin/input');
+            return redirect()->intended('/admin/dashboard');
         }
         if (Auth::user()->role === 'kurir') {
             return redirect()->intended('/kurir/tugas');
+        }
+        if (Auth::user()->role === 'user') {
+            return redirect()->intended('/user/katalog');
         }
 
         return redirect()->intended('/');

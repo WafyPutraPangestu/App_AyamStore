@@ -1,55 +1,44 @@
 <x-layout>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-danger text-white">Pembayaran Gagal</div>
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Header with amber/yellow background for cancelled status -->
+            <div class="bg-amber-400 text-amber-950 py-3 px-4 font-medium">
+                Order Dibatalkan
+            </div>
 
-                <div class="card-body text-center">
-                    <h4 class="card-title text-danger">Oops! Terjadi Kesalahan</h4>
-                    <p>ID Pembayaran: {{ $pembayaran->id }}</p>
-                    <p>Status Saat Ini: <span class="badge bg-danger">{{ ucfirst($pembayaran->status) }}</span></p>
+            <div class="p-6 text-center">
+                <h4 class="text-xl font-bold text-amber-500 mb-4">Order Dibatalkan</h4>
+                <p class="text-gray-700 mb-2">Order dibatalkan dikarenakan Anda tidak langsung menyelesaikan proses pembayaran.</p>
+                <p class="text-gray-700 mb-6">Silakan lakukan order kembali jika Anda masih berminat dengan produk kami.</p>
 
-                    {{-- Tampilkan pesan error spesifik jika ada --}}
-                    <p class="text-danger">{{ $errorMessage ?? 'Pembayaran Anda tidak berhasil diproses atau dibatalkan.' }}</p>
+                <!-- Payment ID section -->
+                @if(isset($pembayaran) && $pembayaran->id)
+                    <p class="mt-4 text-gray-600">ID Pembayaran Terkait: {{ $pembayaran->id }}</p>
+                @endif
 
-                    <p>Silakan coba lagi atau hubungi dukungan jika masalah berlanjut.</p>
-
-                    {{-- Tampilkan detail order jika perlu --}}
-                     @if($pembayaran->order)
-                        <h5>Detail Pesanan yang Gagal (Order ID: {{ $pembayaran->order->id }})</h5>
-                        <ul>
+                <!-- Order details section -->
+                @if(isset($pembayaran) && $pembayaran->order)
+                    <div class="mt-6 mb-6">
+                        <h5 class="font-medium text-gray-800 mb-2">Detail Order Sebelumnya (ID: {{ $pembayaran->order->id }})</h5>
+                        <ul class="space-y-1 mb-3">
                             @foreach($pembayaran->order->items as $item)
-                                <li>{{ $item->produk->nama_produk ?? 'Produk tidak ditemukan' }} ({{ $item->quantity }} pcs)</li>
+                                <li class="text-gray-600">{{ $item->produk->nama_produk ?? 'Produk tidak ditemukan' }} ({{ $item->quantity }} pcs)</li>
                             @endforeach
                         </ul>
-                        <p>Total: Rp {{ number_format($pembayaran->order->total_harga, 0, ',', '.') }}</p>
-                    @endif
-
-
-                    <div class="mt-4">
-                         {{-- Beri Opsi untuk mencoba membayar lagi order yang sama --}}
-                        {{-- PENTING: Pastikan logic mockCheckout bisa handle order yang sudah ada --}}
-                        {{-- Jika tidak, arahkan kembali ke keranjang atau katalog --}}
-                        @if($pembayaran->order)
-                           {{-- <form action="{{ route('user.order-store') }}" method="POST" style="display:inline;">
-                               @csrf
-                               <input type="hidden" name="order_id" value="{{ $pembayaran->order_id }}">
-                               <input type="hidden" name="total_harga" value="{{ $pembayaran->order->total_harga }}">
-                               <button type="submit" class="btn btn-warning">Coba Bayar Lagi</button>
-                           </form> --}}
-                           <a href="{{ route('user.pembayaran', $pembayaran->id) }}" class="btn btn-warning">Coba Lagi Pembayaran</a>
-                           {{-- Atau kembali ke Keranjang? Tergantung flow Anda --}}
-                           <a href="{{ route('user.keranjang') }}" class="btn btn-secondary">Kembali ke Keranjang</a>
-                        @else
-                             <a href="{{ route('user.katalog') }}" class="btn btn-primary">Kembali ke Katalog</a>
-                        @endif
-                        <a href="{{ route('user.riwayat') }}" class="btn btn-secondary">Lihat Riwayat Pesanan</a>
-
+                        <p class="font-medium">Total: Rp {{ number_format($pembayaran->order->total_harga, 0, ',', '.') }}</p>
                     </div>
+                @endif
+
+                <!-- Action buttons -->
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    <a href="{{ route('user.katalog') }}" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-lg transition-colors">
+                        Kembali ke Katalog
+                    </a>
+                    <a href="{{ route('user.keranjang') }}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                        Lihat Keranjang Saya
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </x-layout>

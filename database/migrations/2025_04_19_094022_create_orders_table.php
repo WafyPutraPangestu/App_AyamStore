@@ -20,8 +20,8 @@ return new class extends Migration
             $table->foreignId('kurir_id')->nullable()->constrained('kurirs')->nullOnDelete();
             $table->text('alamat_pengiriman')->nullable();
             $table->decimal('ongkir', 12, 2)->default(0);
-            $table->decimal('total_harga', 12, 2);
-            $table->decimal('total', 12, 2);
+            $table->decimal('total_harga', 12, 2)->nullable();
+            $table->decimal('total', 12, 2)->nullable();
             $table->enum('status', ['pending', 'selesai', 'gagal'])->default('pending');
             $table->enum('status_pengiriman', [
                 'mencari_kurir',
