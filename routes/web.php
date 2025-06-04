@@ -48,6 +48,9 @@ Route::middleware('admin')->group(function () {
     });
     Route::controller(panelController::class)->prefix('admin')->name('admin.')->group(function () {
         route::get('panel', 'panelView')->name('panel');
+        route::get('detailKurir/{kurir}', 'detailKurir')->name('detailKurir');
+
+        route::get('performa/{kurir}', 'performaKurir')->name('performaKurir');
     });
     // ROUTE UNTUK DETAIL ORDER
 

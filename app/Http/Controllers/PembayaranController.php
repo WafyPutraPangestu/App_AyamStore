@@ -48,6 +48,21 @@ class PembayaranController extends Controller
             ];
         }
 
+        // Tambahkan ongkir sebagai item tambahan
+        if ($order->ongkir > 0) {
+            $items[] = [
+                'id'       => 'ONGKIR',
+                'price'    => $order->ongkir,
+                'quantity' => 1,
+                'name'     => 'Ongkos Kirim',
+            ];
+        }
+
+        // Hitung ulang total berdasarkan item_details
+        $total = array_sum(array_map(function ($item) {
+            return $item['price'] * $item['quantity'];
+        }, $items));
+
         $MidtransId = 'ORDER-' . time() . '-' . rand(1000, 9999);
 
         $transaction = Pembayaran::create([
@@ -60,7 +75,6 @@ class PembayaranController extends Controller
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
-        $total = $order->ongkir + ($order->total_harga ?? 0);
         $params = [
             'transaction_details' => [
                 'order_id' => $MidtransId,
@@ -75,6 +89,7 @@ class PembayaranController extends Controller
             ],
             'item_details' => $items,
         ];
+
         Log::info("Parameter Midtrans: " . json_encode($params));
 
         try {

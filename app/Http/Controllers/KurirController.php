@@ -169,7 +169,7 @@ class KurirController extends Controller
     {
         $user = Auth::user();
         $orders = Order::where('kurir_id', $user->kurir->id)
-            ->where('status_pengiriman', 'terkirim')
+            ->whereIn('status_pengiriman', ['terkirim', 'gagal_kirim'])
             ->orderBy('created_at', 'desc')
             ->latest()->simplePaginate(10);
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 
 class SessionController extends Controller
@@ -69,6 +70,9 @@ class SessionController extends Controller
         }
         $request->session()->regenerate();
 
+        $user = Auth::user();
+        Cache::put("last_login_at_user_{$user->id}", now(), now()->addDays(7));
+
         if (Auth::user()->role === 'admin') {
             return redirect()->intended('/admin/dashboard');
         }
@@ -86,6 +90,8 @@ class SessionController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerate();
+        Cache::forget("last_login_at_user_" . Auth::id());
+
         return redirect()->intended('/');
     }
 }

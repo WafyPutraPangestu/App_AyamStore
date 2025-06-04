@@ -420,7 +420,6 @@
               class="select-box status-dropdown"
               data-order-id="{{ $order->id }}"
             >
-              <option value="mencari_kurir" {{ $order->status_pengiriman == 'mencari_kurir' ? 'selected' : '' }}>Mencari Kurir</option>
               <option value="menunggu_pickup" {{ $order->status_pengiriman == 'menunggu_pickup' ? 'selected' : '' }}>Menunggu Pickup</option>
               <option value="sedang_diantar" {{ $order->status_pengiriman == 'sedang_diantar' ? 'selected' : '' }}>Sedang Diantar</option>
               <option value="terkirim" {{ $order->status_pengiriman == 'terkirim' ? 'selected' : '' }}>Terkirim</option>

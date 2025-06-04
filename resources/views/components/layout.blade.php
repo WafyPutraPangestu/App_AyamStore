@@ -16,7 +16,7 @@
     @endif
 </head>
 <body class="bg-slate-50 font-sans antialiased">
-    @unless (request()->is('auth/login') || request()->is('auth/register') || request()->is('admin/detailOrder') || request()->is('user/order-form*') || request()->is('user/pembayaran*')) 
+    @unless (request()->is('auth/login') || request()->is('auth/register') || request()->is('admin/detailOrder') || request()->is('user/order-form*') ||request()->is('admin/detailKurir*') || request()->is('user/pembayaran*')) 
         <x-navigation /> 
     @endunless
 
