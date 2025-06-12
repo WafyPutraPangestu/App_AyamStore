@@ -302,13 +302,12 @@
                       </div>
                     </div>
 
-                    {{-- Avg Delivery Time --}}
-                    {{-- <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center justify-between text-xs">
                       <span class="text-gray-600">Avg Delivery:</span>
                       <span class="font-medium {{ ($kurir['performance']['avg_delivery_time_minutes'] ?? 0) <= 30 ? 'text-green-600' : (($kurir['performance']['avg_delivery_time_minutes'] ?? 0) <= 60 ? 'text-yellow-600' : 'text-red-600') }}">
-                        {{ $kurir['performance']['avg_delivery_time_formatted'] ?? 'N/A' }}
+                          {{ ($kurir['performance']['avg_delivery_time_minutes'] ?? 0) > 0 ? $kurir['performance']['avg_delivery_time_formatted'] : 'Belum ada data' }}
                       </span>
-                    </div> --}}
+                  </div>
 
                     {{-- Active Hours --}}
                     <div class="flex items-center justify-between text-xs">
@@ -519,10 +518,16 @@
               <strong>Rata-rata Performance Score:</strong> 
               {{ collect($kurirs)->where('performance.performance_score', '>', 0)->avg('performance.performance_score') ? number_format(collect($kurirs)->where('performance.performance_score', '>', 0)->avg('performance.performance_score'), 1) : 0 }}/100
             </p>
-            {{-- <p class="mb-2">
-              <strong>Rata-rata Waktu Pengantaran:</strong> 
-              {{ collect($kurirs)->where('performance.avg_delivery_time_minutes', '>', 0)->avg('performance.avg_delivery_time_minutes') ? number_format(collect($kurirs)->where('performance.avg_delivery_time_minutes', '>', 0)->avg('performance.avg_delivery_time_minutes')) . ' menit' : 'N/A' }}
-            </p> --}}
+          <p class="mb-2">
+    <strong>Rata-rata Waktu Pengantaran:</strong>
+    @php
+        $validKurirs = collect($kurirs)->filter(function ($kurir) {
+            return isset($kurir['performance']['avg_delivery_time_minutes']) && $kurir['performance']['avg_delivery_time_minutes'] > 0;
+        });
+        $avgDeliveryTime = $validKurirs->count() > 0 ? $validKurirs->avg('performance.avg_delivery_time_minutes') : 0;
+    @endphp
+    {{ $avgDeliveryTime > 0 ? number_format($avgDeliveryTime, 1) . ' menit' : 'Belum ada data' }}
+</p>
             <p>
               <strong>Total Orders (30 hari):</strong> 
               {{ collect($kurirs)->sum('performance.total_orders_30days') }} orders dengan success rate 
@@ -532,76 +537,5 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {{-- Custom CSS untuk animasi dan styling tambahan --}}
-  <style>
-    .transition-all {
-      transition: all 0.3s ease;
-    }
-    
-    .hover\:scale-105:hover {
-      transform: scale(1.05);
-    }
-    
-    /* Custom scrollbar untuk tabel */
-    .overflow-x-auto::-webkit-scrollbar {
-      height: 6px;
-    }
-    
-    .overflow-x-auto::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-    
-    .overflow-x-auto::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 3px;
-    }
-    
-    .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
-
-    /* Animasi untuk progress bar */
-    @keyframes progressLoad {
-      0% { width: 0%; }
-      100% { width: var(--progress-width); }
-    }
-    
-    .progress-animated {
-      animation: progressLoad 1s ease-out;
-    }
-  </style>
-
-  {{-- Script untuk interaktivitas tambahan --}}
-  <script>
-    document.addEventListener('alpine:init', () => {
-      Alpine.data('kurirPanel', () => ({
-        searchTerm: '',
-        selectedStatus: 'all',
-        showPerformanceDetails: false,
-        
-        init() {
-          // Auto refresh data setiap 30 detik
-          setInterval(() => {
-            // Bisa ditambahkan AJAX call untuk refresh data
-            console.log('Auto refresh data...');
-          }, 30000);
-        },
-        
-        exportData() {
-          // Fungsi untuk export data
-          console.log('Exporting data...');
-        },
-        
-        refreshData() {
-          // Fungsi untuk refresh manual
-          location.reload();
-        }
-      }))
-    })
-  </script>
-
 </x-layout>

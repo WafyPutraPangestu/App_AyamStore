@@ -20,6 +20,9 @@ class Order extends Model
         'total',
         'status',
         'status_pengiriman',
+        'bukti_pengiriman',
+        'waktu_mulai_antar',
+        'waktu_selesai_antar',
     ];
     protected $guarded = ['total_harga'];
 
@@ -29,10 +32,7 @@ class Order extends Model
     {
         return $this->hasMany(Pembayaran::class);
     }
-    // public function produk()
-    // {
-    //     return $this->belongsTo(Produk::class, 'produk_id');
-    // }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -41,10 +41,7 @@ class Order extends Model
     {
         return $this->belongsTo(kurir::class, 'kurir_id');
     }
-    // public function keranjangs()
-    // {
-    //     return $this->belongsTo(Keranjang::class, 'keranjang_id');
-    // }
+
     public function items()
     {
         return $this->hasMany(OrderItem::class, 'orders_id');

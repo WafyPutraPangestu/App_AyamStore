@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kurir;
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -140,28 +141,75 @@ class KurirController extends Controller
     public function updateTugas(Request $request, Order $order)
     {
         $request->validate([
-            'status_pengiriman' => 'required|in:mencari_kurir,menunggu_pickup,sedang_diantar,terkirim,gagal_kirim'
+            'status_pengiriman' => 'required|in:menunggu_pickup,sedang_diantar,terkirim,gagal_kirim',
+            'bukti_pengiriman' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $order->status_pengiriman = $request->input('status_pengiriman');
-        $order->save();
+        $newStatus = $request->input('status_pengiriman');
+        $updateData = ['status_pengiriman' => $newStatus];
 
-        // Cek apakah status baru adalah 'terkirim'
-        if ($order->status_pengiriman === 'terkirim') {
-            // Cek apakah masih ada order aktif (belum terkirim) untuk kurir ini
-            $activeOrders = Order::where('kurir_id', $order->kurir_id)
-                ->whereNotIn('status_pengiriman', ['terkirim', 'gagal_kirim']) // hanya yang masih dalam proses
-                ->count();
+        // Logika untuk mengisi timestamp berdasarkan perubahan status
+        switch ($newStatus) {
+            case 'sedang_diantar':
+                // Isi waktu mulai HANYA JIKA belum pernah diisi sebelumnya
+                if (!$order->waktu_mulai_antar) {
+                    $updateData['waktu_mulai_antar'] = Carbon::now();
+                }
+                break;
 
-            // Jika tidak ada order aktif, ubah status kurir menjadi tersedia
-            if ($activeOrders === 0 && $order->kurir) {
-                $order->kurir->update(['status' => 'tersedia']);
+            case 'terkirim':
+                // Validasi bukti pengiriman wajib ada
+                if (!$request->hasFile('bukti_pengiriman')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gambar bukti pengiriman wajib diupload saat status terkirim.'
+                    ], 422);
+                }
+
+                // Upload gambar baru dan tambahkan ke data update
+                $path = $request->file('bukti_pengiriman')->store('bukti_pengiriman', 'public');
+                $updateData['bukti_pengiriman'] = $path;
+
+                // Isi waktu selesai HANYA JIKA belum pernah diisi
+                if (!$order->waktu_selesai_antar) {
+                    $updateData['waktu_selesai_antar'] = Carbon::now();
+                }
+                // Update juga status utama order menjadi 'selesai'
+                $updateData['status'] = 'selesai';
+                break;
+
+            case 'gagal_kirim':
+                // Isi waktu selesai HANYA JIKA belum pernah diisi
+                if (!$order->waktu_selesai_antar) {
+                    $updateData['waktu_selesai_antar'] = Carbon::now();
+                }
+                // Update juga status utama order menjadi 'gagal'
+                $updateData['status'] = 'gagal';
+                break;
+        }
+
+        // Lakukan satu kali update ke database
+        $order->update($updateData);
+
+        // Cek apakah status baru adalah 'terkirim' atau 'gagal_kirim'
+        // untuk mengubah status kurir
+        if (in_array($newStatus, ['terkirim', 'gagal_kirim'])) {
+            if ($order->kurir) {
+                $activeOrders = Order::where('kurir_id', $order->kurir_id)
+                    ->whereNotIn('status_pengiriman', ['terkirim', 'gagal_kirim'])
+                    ->count();
+
+                if ($activeOrders === 0) {
+                    $order->kurir->update(['status' => 'tersedia']);
+                }
             }
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Status pengiriman berhasil diupdate.'
+            'message' => 'Status pengiriman berhasil diupdate.',
+            // Reload order data untuk mendapatkan timestamp terbaru di response
+            'data' => $order->fresh()
         ]);
     }
 

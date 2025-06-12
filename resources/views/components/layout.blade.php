@@ -12,7 +12,7 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/kurir.css','resources/css/panel.css','resources/css/app.css', 'resources/js/panel.js', 'resources/js/app.js'])
     @endif
 </head>
 <body class="bg-slate-50 font-sans antialiased">

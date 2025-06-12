@@ -6,6 +6,7 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KurirController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
+use App\Http\Controllers\OrderReportController;
 use App\Http\Controllers\panelController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PengirimanController;
@@ -29,6 +30,9 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [SessionController::class, 'logout'])->name('auth.logout');
 });
 // ROUTE UNTUK ADMIN
+
+Route::get('/reports/orders/export/excel', [OrderReportController::class, 'exportOrdersExcel'])->name('reports.orders.export.excel');
+
 Route::middleware('admin')->group(function () {
     Route::controller(DashboardController::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', 'adminDashboard')->name('dashboard');

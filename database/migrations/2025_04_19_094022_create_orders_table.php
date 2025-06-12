@@ -31,6 +31,9 @@ return new class extends Migration
                 'gagal_kirim'
             ])
                 ->default('mencari_kurir');
+            $table->string('bukti_pengiriman')->nullable();
+            $table->timestamp('waktu_mulai_antar')->nullable()->after('bukti_pengiriman');
+            $table->timestamp('waktu_selesai_antar')->nullable()->after('waktu_mulai_antar');
             $table->timestamps();
         });
     }

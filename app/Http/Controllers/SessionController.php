@@ -77,7 +77,7 @@ class SessionController extends Controller
             return redirect()->intended('/admin/dashboard');
         }
         if (Auth::user()->role === 'kurir') {
-            return redirect()->intended('/kurir/tugas');
+            return redirect()->intended('/kurir/profile');
         }
         if (Auth::user()->role === 'user') {
             return redirect()->intended('/user/katalog');
